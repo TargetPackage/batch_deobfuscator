@@ -49,6 +49,7 @@ class BatchDeobfuscator:
         self.exec_ps1 = []
         self.traits = defaultdict(list)
         self.complex_one_liner_threshold = complex_one_liner_threshold
+        self.modified_filesystem = {}
         if os.name == "nt":
             for env_var, value in os.environ.items():
                 self.variables[env_var.lower()] = value
@@ -402,6 +403,44 @@ class BatchDeobfuscator:
         if ps1_cmd:
             self.exec_ps1.append(ps1_cmd.strip(b'"'))
 
+    def interpret_copy(self, cmd):
+        split_cmd = []
+        curr = ""
+        q = ""
+        for c in cmd.split():
+            if not q and c[0] in ["'", '"']:
+                q = c[0]
+                if curr:
+                    curr = f"{curr} {c}"
+                else:
+                    curr = c
+            elif q and c[-1] == q:
+                curr = f"{curr} {c}"
+                split_cmd.append(curr)
+                curr = ""
+                q = ""
+            elif q:
+                curr = f"{curr} {c}"
+            else:
+                split_cmd.append(c)
+        if curr:
+            split_cmd.append(curr)
+
+        general_options = ["/v", "/n", "/l", "/y", "/-y", "/z"]
+        file_options = ["/a", "/b", "/d"]
+        all_options = file_options + general_options + [x.upper() for x in file_options + general_options]
+        split_cmd = list(filter(lambda x: x not in all_options, split_cmd))
+        if len(split_cmd) != 3:
+            # Won't follow the patttern "copy src dst", which we are currently looking at
+            return
+
+        src = re.sub(r"\\+", r"\\", split_cmd[1])
+        dst = re.sub(r"\\+", r"\\", split_cmd[2])
+
+        if src.lower().startswith("c:\\windows\\system32") and not dst.lower().startswith("c:\\windows\\system32"):
+            self.traits["windows-util-manipulation"].append((cmd, {"src": src, "dst": dst}))
+            self.modified_filesystem[dst] = src
+
     def interpret_command(self, normalized_comm):
         if normalized_comm[:3].lower() == "rem":
             return
@@ -422,14 +461,21 @@ class BatchDeobfuscator:
             index += 1
         normalized_comm = normalized_comm[index : last + 1]
 
-        if not normalized_comm:
+        if not normalized_comm.strip() or normalized_comm == "@":
             return
 
         if normalized_comm[0] == "@":
             normalized_comm = normalized_comm[1:]
 
         normalized_comm_lower = normalized_comm.lower()
-        if normalized_comm_lower.startswith("call"):
+        command = normalized_comm_lower.split()[0]
+        if len(normalized_comm_lower.split("/")[0]) < len(command):
+            command = normalized_comm_lower.split("/")[0]
+
+        if command in self.modified_filesystem:
+            command = self.modified_filesystem[command]
+
+        if command == "call":
             # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be remove
             # This shouldn't work:
             # call @set EXP=43
@@ -438,7 +484,7 @@ class BatchDeobfuscator:
             self.interpret_command(normalized_comm[5:])
             return
 
-        if normalized_comm_lower.startswith("start"):
+        if command == "start":
             start_re = (
                 r"start(.exe)?"
                 r"(\/min|\/max|\/wait|\/low|\/normal|\/abovenormal|\/belownormal|\/high|\/realtime|\/b|\/i|\/w|\s+)*"
@@ -451,18 +497,14 @@ class BatchDeobfuscator:
                 self.interpret_command(match.group("cmd"))
             return
 
-        if normalized_comm_lower.startswith("cmd"):
+        if command.endswith("cmd") or command.endswith("cmd.exe"):
             cmd_command = r"cmd(.exe)?\s*((\/A|\/U|\/Q|\/D)\s+|((\/E|\/F|\/V):(ON|OFF))\s*)*(\/c|\/r)\s*(?P<cmd>.*)"
             match = re.search(cmd_command, normalized_comm, re.IGNORECASE)
             if match is not None and match.group("cmd") is not None:
                 self.exec_cmd.append(match.group("cmd").strip('"'))
             return
 
-        if normalized_comm_lower.startswith("setlocal"):
-            # Just so we don't go into the set command
-            return
-
-        if normalized_comm_lower.startswith("set"):
+        if command == "set":
             # interpreting set command
             var_name, var_value = self.interpret_set(normalized_comm[3:])
             if var_value == "":
@@ -472,11 +514,16 @@ class BatchDeobfuscator:
                 self.variables[var_name.lower()] = var_value
             return
 
-        if normalized_comm_lower.startswith("curl"):
+        if command.endswith("curl") or command.endswith("curl.exe"):
             self.interpret_curl(normalized_comm)
 
-        if normalized_comm_lower.startswith("powershell"):
-            self.interpret_powershell(normalized_comm)
+        if command.endswith("powershell") or command.endswith("powershell.exe"):
+            # In case the target executable is a copy/lnk to powershell.exe, makes it simpler to parse the command
+            patch_cmd = normalized_comm.lstrip(command)
+            self.interpret_powershell(f"powershell.exe {patch_cmd}")
+
+        if command == "copy":
+            self.interpret_copy(normalized_comm)
 
     # pushdown automata
     def normalize_command(self, command):
