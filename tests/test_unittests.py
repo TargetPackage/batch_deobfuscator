@@ -540,7 +540,7 @@ class TestUnittests:
         assert len(deobfuscator.exec_ps1) == 1
         assert deobfuscator.exec_ps1[0] == (
             b"$out = cat '%USERPROFILE%\\jin\\config.json' | "
-            b"%%{$_ -replace '\"donate-level\": *\\d*,', '\"donate-level\": 1,'} | "
+            b"%%{$_ -replace '\\\"donate-level\\\": *\\d*,', '\\\"donate-level\\\": 1,'} | "
             b"Out-String; $out | Out-File -Encoding ASCII '%USERPROFILE%\\jin\\config.json'"
         )
         deobfuscator.exec_ps1.clear()
@@ -553,26 +553,21 @@ class TestUnittests:
         assert len(deobfuscator.exec_ps1) == 1
         assert (
             deobfuscator.exec_ps1[0]
-            == b"&{start-process powershell -ArgumentList '-noprofile -file \"%scriptPath%\"' -verb RunAs}"
+            == b"&{start-process powershell -ArgumentList '-noprofile -file \\\"%scriptPath%\\\"' -verb RunAs}"
         )
 
     @staticmethod
-    @pytest.mark.skip()
     def test_non_posix_powershell():
         deobfuscator = BatchDeobfuscator()
-
-        # TODO: Find out how to parse this as non-posix with shlex without breaking all other cases
-        # What to do with odd number of quotes. Shlex doesn't parse it perfectly.
         cmd = (
             'powershell -Command "Get-AppxPackage -Name "Microsoft.OneDriveSync" > '
             '"%WORKINGDIRONEDRIVE%\\OneDriveSparsePackage.txt" 2>&1'
         )
         deobfuscator.interpret_command(cmd)
         assert len(deobfuscator.exec_ps1) == 1
-        # assert deobfuscator.exec_ps1[0] == "Good command (with or without redirection)"
+        assert deobfuscator.exec_ps1[0] == b'Get-AppxPackage -Name "Microsoft.OneDriveSync'
         deobfuscator.exec_ps1.clear()
 
-        # TODO: Found out how to keep the \ from this command and keep posix style commands working
         cmd = r"PowerShell -NoProfile -ExecutionPolicy Bypass -Command C:\ProgramData\x64\ISO\x64.ps1"
         deobfuscator.interpret_command(cmd)
         assert len(deobfuscator.exec_ps1) == 1
