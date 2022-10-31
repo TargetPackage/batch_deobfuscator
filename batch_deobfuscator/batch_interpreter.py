@@ -16,6 +16,7 @@ QUOTED_CHARS = ["|", ">", "<", '"', "^", "&"]
 # Powershell detection
 ENC_RE = rb"(?i)(?:-|/)e(?:c|n(?:c(?:o(?:d(?:e(?:d(?:c(?:o(?:m(?:m(?:a(?:nd?)?)?)?)?)?)?)?)?)?)?)?)?$"
 PWR_CMD_RE = rb"(?i)(?:-|/)c(?:o(?:m(?:m(?:a(?:nd?)?)?)?)?)?$"
+PWR_FILE_RE = rb"(?i)(?:-|/)f(?:i(?:l(?:e?)?)?)?$"
 
 # Gathered from https://gist.github.com/api0cradle/8cdc53e2a80de079709d28a2d96458c2
 RARE_LOLBAS = [
@@ -383,22 +384,56 @@ class BatchDeobfuscator:
         self.traits["download"].append((cmd, {"src": args.url, "dst": dst}))
 
     def interpret_powershell(self, normalized_comm):
-        try:
-            ori_cmd = shlex.split(normalized_comm)
-            cmd = shlex.split(normalized_comm.lower())
-        except ValueError:
-            return
-
         ps1_cmd = None
+        # Assume the first element is the call to powershell
+        cmd = normalized_comm.split()[1:]
         for idx, part in enumerate(cmd):
             if re.match(ENC_RE, part.encode()):
-                ps1_cmd = base64.b64decode(ori_cmd[idx + 1]).replace(b"\x00", b"")
+                if cmd[idx + 1][0] in ["'", '"']:
+                    last_part = idx + 1
+                    for i in range(last_part, len(cmd)):
+                        if cmd[i][-1] == cmd[idx + 1][0] and (
+                            len(cmd[i]) == 1 or (len(cmd[i]) >= 2 and cmd[i][-2] != "\\")
+                        ):
+                            last_part = i + 1
+                            break
+                    ps1_cmd = base64.b64decode(" ".join(cmd[idx + 1 : last_part])).replace(b"\x00", b"")
+                else:
+                    ps1_cmd = base64.b64decode(cmd[idx + 1]).replace(b"\x00", b"")
                 break
             elif re.match(PWR_CMD_RE, part.encode()):
-                ps1_cmd = ori_cmd[idx + 1].encode()
+                if cmd[idx + 1][0] in ["'", '"']:
+                    last_part = idx + 1
+                    for i in range(last_part, len(cmd)):
+                        if cmd[i][-1] == cmd[idx + 1][0] and (
+                            len(cmd[i]) == 1 or (len(cmd[i]) >= 2 and cmd[i][-2] != "\\")
+                        ):
+                            last_part = i + 1
+                            break
+                    ps1_cmd = " ".join(cmd[idx + 1 : last_part]).encode()
+                else:
+                    ps1_cmd = " ".join(cmd[idx + 1 :]).encode()
                 break
+            elif re.match(PWR_FILE_RE, part.encode()):
+                # Found powershell execution of file, but not worth extracting the filename as a file
+                return
+
         if ps1_cmd is None:
-            ps1_cmd = ori_cmd[-1].encode()
+            last_option = 0
+            for idx, part in enumerate(cmd):
+                if part[0] in ["'", '"']:
+                    last_part = idx + 1
+                    for i in range(last_part, len(cmd)):
+                        if cmd[i][-1] == part[0] and (len(cmd[i]) == 1 or (len(cmd[i]) >= 2 and cmd[i][-2] != "\\")):
+                            last_part = i + 1
+                            break
+                    ps1_cmd = " ".join(cmd[idx:last_part]).encode()
+                    break
+                if part[0] in ["-", "/"]:
+                    last_option = idx + 1
+
+            if ps1_cmd is None:
+                ps1_cmd = " ".join(cmd[last_option:]).encode()
 
         if ps1_cmd:
             self.exec_ps1.append(ps1_cmd.strip(b'"'))
