@@ -363,7 +363,36 @@ class BatchDeobfuscator:
                 var_name = var_name.replace(char, "")
             var_value = f"({var_value.strip(' ')})"
         elif option == "p":
-            var_value = "__input__"
+            last_quote_index = max(var_value.rfind("'"), var_value.rfind('"'))
+            set_in = var_value.rfind("<")
+            set_out = var_value.rfind(">")
+
+            if set_out != -1 and set_out > last_quote_index:
+                file_redirect = var_value[set_out:].lstrip(">").strip()
+                content = var_value[:set_out].strip()
+                if set_in != -1 and set_in < set_out:
+                    content = var_value[:set_in].strip()
+                elif set_in > set_out:
+                    file_redirect = file_redirect[: set_in - set_out - 1]
+                if content[0] == content[-1] in ["'", '"']:
+                    content = content[1:-1].strip()
+                file_redirect = file_redirect.strip()
+                self.modified_filesystem[file_redirect.lower()] = {"type": "content", "content": content}
+                self.traits["setp-file-redirection"].append((cmd, file_redirect))
+
+            if set_in == -1 or set_in < last_quote_index:
+                var_value = "__input__"
+            else:
+                # We can recover the value right away
+                actual_value = var_value[set_in:].lstrip("<")
+                if set_out > set_in:
+                    actual_value = actual_value[: set_out - set_in - 1]
+                actual_value = actual_value.strip()
+                if actual_value == "nul":
+                    var_value = ""
+                else:
+                    # We could get a value from the redirection, but for the moment we'll leave it generic
+                    var_value = "__input__"
 
         var_name = var_name.lstrip(" ")
         if not quote:
@@ -474,7 +503,7 @@ class BatchDeobfuscator:
 
         if src.lower().startswith("c:\\windows\\system32") and not dst.lower().startswith("c:\\windows\\system32"):
             self.traits["windows-util-manipulation"].append((cmd, {"src": src, "dst": dst}))
-            self.modified_filesystem[dst] = src
+        self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
     def interpret_command(self, normalized_comm):
         if normalized_comm[:3].lower() == "rem":
@@ -508,7 +537,9 @@ class BatchDeobfuscator:
             command = normalized_comm_lower.split("/")[0]
 
         if command in self.modified_filesystem:
-            command = self.modified_filesystem[command]
+            self.traits["manipulated-content-execution"].append((normalized_comm_lower, command))
+            if self.modified_filesystem[command]["type"] == "file":
+                command = self.modified_filesystem[command]["src"]
 
         if command == "call":
             # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be remove
