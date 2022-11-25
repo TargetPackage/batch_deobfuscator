@@ -618,3 +618,32 @@ class TestUnittests:
         deobfuscator = BatchDeobfuscator()
         deobfuscator.interpret_command(cmd)
         assert list(deobfuscator.modified_filesystem.keys()) == fs
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "cmd, command_list",
+        [
+            (
+                "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'",
+                ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'"],
+            ),
+            (
+                "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'&echo A",
+                ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'", "echo A"],
+            ),
+            (
+                '    curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"&echo A',
+                ['curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"', "echo A"],
+            ),
+            (
+                'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop',
+                [
+                    'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop'
+                ],
+            ),
+        ],
+    )
+    def test_command_splitting(cmd, command_list):
+        deobfuscator = BatchDeobfuscator()
+        res = list(deobfuscator.get_commands(cmd))
+        assert res == command_list

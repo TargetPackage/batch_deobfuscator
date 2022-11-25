@@ -38,11 +38,11 @@ from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
         ),
     ],
 )
-def test_one(statement, extracted_ps1):
-    bd = BatchDeobfuscator()
-    bd.interpret_powershell(statement)
+def test_extract_powershell(statement, extracted_ps1):
+    deobfuscator = BatchDeobfuscator()
+    deobfuscator.interpret_powershell(statement)
     if extracted_ps1 is None:
-        assert len(bd.exec_ps1) == 0
+        assert len(deobfuscator.exec_ps1) == 0
     else:
-        assert len(bd.exec_ps1) == 1
-        assert bd.exec_ps1[0] == extracted_ps1
+        assert len(deobfuscator.exec_ps1) == 1
+        assert deobfuscator.exec_ps1[0] == extracted_ps1

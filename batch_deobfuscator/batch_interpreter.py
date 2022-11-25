@@ -110,7 +110,11 @@ class BatchDeobfuscator:
 
         # There are 211 lines coming out of curl --help, so I won't be parsing all the options
         self.curl_parser = argparse.ArgumentParser()
+        # Data could be had multiple time, but since we don't use it, we can ignore it
+        self.curl_parser.add_argument("-d", "--data", dest="data", help="Data to send")
         self.curl_parser.add_argument("-o", "--output", dest="output", help="Write to file instead of stdout")
+        self.curl_parser.add_argument("-H", "--header", dest="header", help="Extra header to include")
+        self.curl_parser.add_argument("-X", "--request", dest="command", help="Specifies a custom request method")
         self.curl_parser.add_argument(
             "-O",
             "--remote-name",
@@ -403,14 +407,23 @@ class BatchDeobfuscator:
     def interpret_curl(self, cmd):
         # Batch specific obfuscation that is not handled before for echo/variable purposes, can be stripped here
         cmd = cmd.replace('""', "")
-        split_cmd = shlex.split(cmd, posix=False)
+        try:
+            split_cmd = shlex.split(cmd, posix=False)
+        except ValueError:
+            # Probably a "No closing quotation"
+            # Usually generated from corrupted or non-batch files
+            return
         args, unknown = self.curl_parser.parse_known_args(split_cmd[1:])
+
+        url = args.url
+        if url[0] == url[-1] in ["'", '"']:
+            url = url[1:-1]
 
         dst = args.output
         if args.remote_name:
-            dst = os.path.basename(urlparse(args.url).path)
+            dst = os.path.basename(urlparse(url).path)
 
-        self.traits["download"].append((cmd, {"src": args.url, "dst": dst}))
+        self.traits["download"].append((cmd, {"src": url, "dst": dst}))
 
     def interpret_powershell(self, normalized_comm):
         ps1_cmd = None

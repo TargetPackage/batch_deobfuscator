@@ -108,6 +108,7 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
+        # To work for real, needs EnableDelayedExpansion and usually ! instead of %, but we don't do the difference yet.
         "logical_line, result",
         [
             ("set com=netstat /ano&&call %com%", ["set com=netstat /ano", "call netstat /ano"]),
@@ -125,7 +126,7 @@ class TestUnittests:
             #     ],
             # ),
             (
-                "set '		= /ano&&set '	=stat&& set '	 =net&&call set '   =%'	 %%'	%%'		%&&call %'   %",
+                "set '		= /ano&&set '	=stat&& set '	 =net&&call set '   =!'	 !!'	!!'		!&&call !'   !",
                 ["set '		= /ano", "set '	=stat", "set '	 =net", "call set '   =netstat /ano", "call netstat /ano"],
             ),
             (
