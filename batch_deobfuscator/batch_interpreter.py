@@ -45,6 +45,7 @@ RARE_LOLBAS = [
 
 class BatchDeobfuscator:
     def __init__(self, complex_one_liner_threshold=4):
+        self.file_path = None
         self.variables = {}
         self.exec_cmd = []
         self.exec_ps1 = []
@@ -653,6 +654,52 @@ class BatchDeobfuscator:
         if command == "copy":
             self.interpret_copy(normalized_comm)
 
+    def valid_percent_tilde(self, argument):
+        return argument == "%" or (argument.startswith("%~") and all(x in "fdpnxsatz" for x in argument[2:]))
+
+    def percent_tilde(self, argument):
+        if argument[:2] == "%":
+            return "script.bat"
+        value = ""
+        argument = argument[2:]
+        path = ""
+        if "a" in argument:
+            value += "--a-------- "
+
+        if "f" in argument:
+            path = "C:\\Users\\al\\Downloads\\script.bat"
+        else:
+            if "d" in argument:
+                path += "C:"
+            if "p" in argument:
+                path += "\\Users\\al\\Downloads\\"
+            if "n" in argument:
+                path += "script"
+            if "x" in argument:
+                path += ".bat"
+
+        if "s" in argument:
+            # TODO: Supposed to change the meaning of the path to a 8.3 Short name (if it exists)
+            if not path:
+                path = "C:\\Users\\al\\Downloads\\script.bat"
+
+        if "t" in argument:
+            value += "12/30/2022 11:41 AM "
+
+        if "z" in argument:
+            if self.file_path:
+                try:
+                    value += str(os.path.getsize(self.file_path))
+                except Exception:
+                    value += "700 "
+            else:
+                value += "700 "
+
+        value += path
+        value = value.strip()
+
+        return value if value else "script.bat"
+
     # pushdown automata
     def normalize_command(self, command):
         if command[:3].lower() == "rem":
@@ -733,25 +780,12 @@ class BatchDeobfuscator:
                     # Assume no parameter were passed
                     normalized_com = normalized_com[:variable_start]
                     state = stack.pop()
-                elif char.isdigit() and normalized_com[variable_start:] in [
-                    "%",
-                    "%~",
-                    "%~f",
-                    "%~d",
-                    "%~p",
-                    "%~n",
-                    "%~x",
-                    "%~s",
-                    "%~a",
-                    "%~t",
-                    "%~z",
-                ]:
+                elif char.isdigit() and self.valid_percent_tilde(normalized_com[variable_start:]):
                     # https://www.programming-books.io/essential/batch/-percent-tilde-f4263820c2db41e399c77259970464f1.html
-                    # TODO: Better handling of letter combination (i.e. %~xsa0)
-                    # Could also return different values of script.bat if we want to parse the options
-                    normalized_com += char
+                    # TODO: %~$PATH:0 is not handled.
+                    # normalized_com += char # is this really needed?
                     if char == "0":
-                        value = "script.bat"
+                        value = self.percent_tilde(normalized_com[variable_start:])
                     else:
                         value = ""  # Assume no parameter were passed
                     normalized_com = normalized_com[:variable_start]
@@ -810,7 +844,7 @@ class BatchDeobfuscator:
 
         if state in ["var_s", "var_s_2"]:
             normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1 :]
-        if state == "escape":
+        elif state == "escape":
             normalized_com += "^"
 
         if traits["start_with_var"]:
@@ -865,6 +899,7 @@ class BatchDeobfuscator:
 
     def analyze(self, file_path, working_directory):
         extracted_files = defaultdict(list)
+        self.file_path = file_path
 
         file_name = "deobfuscated_bat.bat"
         temp_path = os.path.join(working_directory, file_name)
@@ -896,6 +931,7 @@ class BatchDeobfuscator:
             bat_filename = f"{sha256hash[0:10]}_deobfuscated.bat"
             shutil.move(temp_path, os.path.join(working_directory, bat_filename))
 
+        self.file_path = None
         return bat_filename, extracted_files
 
 
