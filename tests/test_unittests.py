@@ -117,15 +117,28 @@ class TestUnittests:
             ('set EXP =43^"', "echo *%EXP %*", 'echo *43"*'),
             ('set EXP =43^"3', "echo *%EXP %*", 'echo *43"3*'),
             ('set "EXP=43^""', "echo *%EXP%*", 'echo *43"*'),
+            # ('set "EXP=43^"', "echo *%EXP%*", "echo *43*"),
             ('set "EXP=43^"3"', "echo *%EXP%*", 'echo *43"3*'),
+            # ('set EXP=43^^"^|', "echo *%EXP%*", 'echo *43"|*'),
             ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
+            # ('set ^"EXP=43"', "echo *%EXP%*", "echo *43*"),
+            # ('set ^"EXP=43""', "echo *%EXP%*", 'echo *43"*'),
+            # ('set "EXP=43""', "echo *%EXP%*", 'echo *43"*'),
+            # # Pipe values
+            # ('set EXP=43"|', "echo *%EXP%*", 'echo *43"|*'),
+            # ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
+            # Invalid syntax...
+            # ('set EXP=43^"|', "echo *%EXP%*", []),
+            # ('set EXP=43"^|', "echo *%EXP%*", 'echo *43"^|*'),
+            # ('set EXP=43"^^|', "echo *%EXP%*", 'echo *43"^^|*'),
             # Getting into really weird stuff
             ("set EXP=4=3", "echo *%EXP%*", "echo *4=3*"),
             ('set ""EXP=43"', 'echo *%"EXP%*', "echo *43*"),
             ('set ""EXP=4"3', 'echo *%"EXP%*', "echo *4*"),
             ('set """EXP=43"', "echo *%EXP%*", "echo **"),
             ('set """EXP=43"', 'echo *%""EXP%*', "echo *43*"),
-            ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),
+            ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),  # TODO: Wait, confirm that I was wrong..
+            # ('set "E^XP=43"', "echo *%EXP%*", "echo **"),  # TODO: Wait, confirm that I was wrong..
             ('set " ^"EXP=43"', 'echo *%^"EXP%*', "echo *43*"),
             ('set ^"EXP=43', "echo *%EXP%*", "echo *43*"),
             ('set E^"XP=43', 'echo *%E"XP%*', "echo *43*"),
@@ -137,6 +150,7 @@ class TestUnittests:
             ("set EXP=43^^ ", "echo *%EXP%*", "echo *43 *"),
             ("set E^^XP=43", "echo *%E^XP%*", "echo *43*"),
             ('set ^"E^^XP=43"', "echo *%E^XP%*", "echo *43*"),
+            ('set ^"E^^XP=43""', "echo *%E^XP%*", 'echo *43"*'),
             ('set ^"E^^XP=43^"', "echo *%E^XP%*", "echo *43*"),
             ('set ^"E^^XP=43', "echo *%E^XP%*", "echo *43*"),
             ('set "E^^XP=43"', "echo *%E^^XP%*", "echo *43*"),
@@ -270,6 +284,10 @@ class TestUnittests:
         [
             ('IF "A"=="A" echo AAA', ['IF "A"=="A" (', "echo AAA", ")"]),
             ('IF "A"=="A" (echo AAA)', ['IF "A"=="A" (', "echo AAA", ")"]),
+            # TODO: Improvements to the whole program so that it doesn't need to split into multiple lines
+            # It's going to break examples like
+            # 'IF "A"=="B" (echo AAA) ELSE echo abc)'
+            # Since wrapping "echo abc)" inside () will remove the print of the ) at the end of abc
             ('IF "A"=="A" (echo AAA) ELSE echo BBB', ['IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"]),
             (
                 'echo ABC && IF "A"=="A" (echo AAA) ELSE echo BBB',
@@ -315,6 +333,75 @@ class TestUnittests:
         ],
     )
     def test_if_statements(statement, commands):
+        deobfuscator = BatchDeobfuscator()
+        assert [x for x in deobfuscator.get_commands(statement)] == commands
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "statement, commands",
+        [
+            # This is getting complicated
+            # Based on 2369ddd7c46c244ec0984bc196bea498ce49999202de2c29f91f129383bf8cd5
+            (
+                "if %PROCESSOR_ARCHITECTURE%==x86 (python -c \"print('x86')\") else (python -c \"print('not x86')\")",
+                [
+                    "if %PROCESSOR_ARCHITECTURE%==x86 (",
+                    "python -c \"print('x86')\"",
+                    ") else (",
+                    "python -c \"print('not x86')\"",
+                    ")",
+                ],
+            ),
+            (
+                """if %PROCESSOR_ARCHITECTURE%==x86 (python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]") else (python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]")""",
+                [
+                    "if %PROCESSOR_ARCHITECTURE%==x86 (",
+                    '''python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]"''',
+                    ") else (",
+                    '''python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]"''',
+                    ")",
+                ],
+            ),
+        ],
+    )
+    def test_complicated_if_statements(statement, commands):
+        deobfuscator = BatchDeobfuscator()
+        assert [x for x in deobfuscator.get_commands(statement)] == commands
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "statement, commands",
+        [
+            (
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no"],
+            ),
+            (
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no(",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no("],
+            ),
+            (
+                # TODO: This is not right, but will do for the moment.
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)"],
+            ),
+            (
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()"],
+            ),
+            (
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo oh no() else echo not again)",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo oh no(", ") else echo not again)"],
+            ),
+            # If the writer assumes the statement to always be true, the else statement can be invalid...
+            (
+                "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo if () else is so broken)",
+                ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo if (", ") else is so broken)"],
+            ),
+        ],
+    )
+    @pytest.mark.skip()
+    def test_broken_if_statements(statement, commands):
         deobfuscator = BatchDeobfuscator()
         assert [x for x in deobfuscator.get_commands(statement)] == commands
 

@@ -141,31 +141,80 @@ class BatchDeobfuscator:
                 else:
                     logical_line += line + "\n"
 
+    def find_closing_paren(self, statement):
+        state = "init"
+        counter = 0
+        start_command = 0
+        for char in statement:
+            # print(f"C:{char}, S:{state}")
+            if state == "init":  # init state
+                if char == '"':  # quote is on
+                    state = "str_s"
+                elif char == "^":
+                    state = "escape"
+                elif char == ")":
+                    return statement[start_command:counter]
+            elif state == "str_s":
+                if char == '"':
+                    state = "init"
+            elif state == "escape":
+                state = "init"
+
+            counter += 1
+
+        return statement
+
     def split_if_statement(self, statement):
+        # TODO: Wrapping everything in () is wrong, but helps to analyze internal elements
         if_statement = (
             r"(?P<conditional>(?P<if_statement>if)\s+(not\s+)?"
             r"(?P<type>errorlevel\s+\d+\s+|exist\s+(\".*\"|[^\s]+)\s+|.+?==.+?\s+|"
             r"(\/i\s+)?[^\s]+\s+(equ|neq|lss|leq|gtr|geq)\s+[^\s]+\s+|cmdextversion\s+\d\s+|defined\s+[^\s]+\s+)"
-            r"(?P<open_paren>\()?)(?P<true_statement>[^\)]*)(?P<close_paren>\))?"
-            r"(\s+else\s+(\()?\s*(?P<false_statement>[^\)]*)(\))?)?"
+            r"(?P<open_paren>\()?)(?P<true_statement_start>.*)"
         )
-        match = re.search(if_statement, statement, re.IGNORECASE)
-        if match is not None:
-            conditional = match.group("conditional")
-            if match.group("open_paren") is None:
+        else_statement = (
+            r"(?P<close_paren>\))?(\s+else\s+(?P<open_paren>\()?\s*(?P<false_statement_start>.*)(?P<ending_paren>\))?)"
+        )
+        if_match = re.search(if_statement, statement, re.IGNORECASE)
+        if if_match is not None:
+            true_statement_start = if_match.span("true_statement_start")[0]
+            rest = statement[true_statement_start:]
+            true_statement = self.find_closing_paren(rest)
+            conditional = if_match.group("conditional")
+            if if_match.group("open_paren") is None:
                 conditional = f"{conditional}("
             yield conditional
-            yield match.group("true_statement")
-            if match.group("false_statement") is None:
-                if match.group("open_paren") is None or match.group("close_paren") is not None:
+            if true_statement.strip() == "":
+                # If we are analysing only the first part, we're done after this
+                return
+            yield true_statement
+            else_match = re.search(
+                else_statement, statement[true_statement_start + len(true_statement) :], re.IGNORECASE
+            )
+            if else_match is None:
+                if statement[true_statement_start + len(true_statement) :]:
+                    yield statement[true_statement_start + len(true_statement) :]
+                if if_match.group("open_paren") is None:  # or match.group("close_paren") is not None:
                     yield ")"
             else:
                 # Got an ELSE statement
-                if match.group("if_statement") == "if":
+                else_open_paren = else_match.group("open_paren")
+                if if_match.group("if_statement") == "if":
                     yield ") else ("
                 else:
                     yield ") ELSE ("
-                yield match.group("false_statement")
+
+                if else_open_paren is not None:
+                    false_statement = self.find_closing_paren(
+                        statement[
+                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                        ]
+                    )
+                else:
+                    false_statement = statement[
+                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                    ]
+                yield false_statement
                 yield ")"
         else:
             # Broken statement, maybe a re-run
