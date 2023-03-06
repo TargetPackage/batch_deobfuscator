@@ -190,11 +190,11 @@ class BatchDeobfuscator:
                 return
             yield true_statement
             else_match = re.search(
-                else_statement, statement[true_statement_start + len(true_statement) :], re.IGNORECASE
+                else_statement, statement[true_statement_start + len(true_statement):], re.IGNORECASE
             )
             if else_match is None:
-                if statement[true_statement_start + len(true_statement) :]:
-                    yield statement[true_statement_start + len(true_statement) :]
+                if statement[true_statement_start + len(true_statement):]:
+                    yield statement[true_statement_start + len(true_statement):]
                 if if_match.group("open_paren") is None:  # or match.group("close_paren") is not None:
                     yield ")"
             else:
@@ -208,12 +208,12 @@ class BatchDeobfuscator:
                 if else_open_paren is not None:
                     false_statement = self.find_closing_paren(
                         statement[
-                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0]:
                         ]
                     )
                 else:
                     false_statement = statement[
-                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0]:
                     ]
                 yield false_statement
                 yield ")"
@@ -316,7 +316,7 @@ class BatchDeobfuscator:
                     else:
                         length = len(value) - index
                     if length >= 0:
-                        value = value[index : index + length]
+                        value = value[index: index + length]
                     else:
                         value = value[index:length]
                 elif match.group("s1") is not None:
@@ -489,7 +489,7 @@ class BatchDeobfuscator:
                         ):
                             last_part = i + 1
                             break
-                    ps1_cmd = base64.b64decode(" ".join(cmd[idx + 1 : last_part])).replace(b"\x00", b"")
+                    ps1_cmd = base64.b64decode(" ".join(cmd[idx + 1: last_part])).replace(b"\x00", b"")
                 else:
                     ps1_cmd = base64.b64decode(cmd[idx + 1]).replace(b"\x00", b"")
                 break
@@ -502,9 +502,9 @@ class BatchDeobfuscator:
                         ):
                             last_part = i + 1
                             break
-                    ps1_cmd = " ".join(cmd[idx + 1 : last_part]).encode()
+                    ps1_cmd = " ".join(cmd[idx + 1: last_part]).encode()
                 else:
-                    ps1_cmd = " ".join(cmd[idx + 1 :]).encode()
+                    ps1_cmd = " ".join(cmd[idx + 1:]).encode()
                 break
             elif re.match(PWR_FILE_RE, part.encode()):
                 # Found powershell execution of file, but not worth extracting the filename as a file
@@ -586,7 +586,7 @@ class BatchDeobfuscator:
                         break
                     last -= 1
             index += 1
-        normalized_comm = normalized_comm[index : last + 1]
+        normalized_comm = normalized_comm[index: last + 1]
 
         if not normalized_comm.strip() or normalized_comm == "@":
             return
@@ -843,7 +843,7 @@ class BatchDeobfuscator:
                         state = "var_s_2"
 
         if state in ["var_s", "var_s_2"]:
-            normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1 :]
+            normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1:]
         elif state == "escape":
             normalized_com += "^"
 
@@ -863,7 +863,7 @@ class BatchDeobfuscator:
             else:
                 self.interpret_command(normalized_comm)
                 f.write(normalized_comm)
-                f.write("\n")
+                f.write("\r\n")
                 for lolbas in RARE_LOLBAS:
                     if lolbas in normalized_comm:
                         self.traits["LOLBAS"].append({"LOLBAS": lolbas, "Command": normalized_comm})
