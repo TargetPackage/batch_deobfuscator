@@ -115,7 +115,9 @@ class BatchDeobfuscator:
         self.curl_parser.add_argument("-d", "--data", dest="data", help="Data to send")
         self.curl_parser.add_argument("-o", "--output", dest="output", help="Write to file instead of stdout")
         self.curl_parser.add_argument("-H", "--header", dest="header", help="Extra header to include")
-        self.curl_parser.add_argument("-X", "--request", dest="command", help="Specifies a custom request method")
+        self.curl_parser.add_argument(
+            "-X", "--request", dest="command", default="GET", help="Specifies a custom request method"
+        )
         self.curl_parser.add_argument(
             "-O",
             "--remote-name",
@@ -190,11 +192,11 @@ class BatchDeobfuscator:
                 return
             yield true_statement
             else_match = re.search(
-                else_statement, statement[true_statement_start + len(true_statement):], re.IGNORECASE
+                else_statement, statement[true_statement_start + len(true_statement) :], re.IGNORECASE
             )
             if else_match is None:
-                if statement[true_statement_start + len(true_statement):]:
-                    yield statement[true_statement_start + len(true_statement):]
+                if statement[true_statement_start + len(true_statement) :]:
+                    yield statement[true_statement_start + len(true_statement) :]
                 if if_match.group("open_paren") is None:  # or match.group("close_paren") is not None:
                     yield ")"
             else:
@@ -208,12 +210,12 @@ class BatchDeobfuscator:
                 if else_open_paren is not None:
                     false_statement = self.find_closing_paren(
                         statement[
-                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0]:
+                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
                         ]
                     )
                 else:
                     false_statement = statement[
-                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0]:
+                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
                     ]
                 yield false_statement
                 yield ")"
@@ -316,7 +318,7 @@ class BatchDeobfuscator:
                     else:
                         length = len(value) - index
                     if length >= 0:
-                        value = value[index: index + length]
+                        value = value[index : index + length]
                     else:
                         value = value[index:length]
                 elif match.group("s1") is not None:
@@ -474,6 +476,8 @@ class BatchDeobfuscator:
             dst = os.path.basename(urlparse(url).path)
 
         self.traits["download"].append((cmd, {"src": url, "dst": dst}))
+        if dst:
+            self.modified_filesystem[dst.lower()] = {"type": "download", "src": url}
 
     def interpret_powershell(self, normalized_comm):
         ps1_cmd = None
@@ -489,9 +493,17 @@ class BatchDeobfuscator:
                         ):
                             last_part = i + 1
                             break
-                    ps1_cmd = base64.b64decode(" ".join(cmd[idx + 1: last_part])).replace(b"\x00", b"")
+                    try:
+                        ps1_cmd = base64.b64decode(" ".join(cmd[idx + 1 : last_part])).replace(b"\x00", b"")
+                    except Exception:
+                        # Probably a broken script
+                        return
                 else:
-                    ps1_cmd = base64.b64decode(cmd[idx + 1]).replace(b"\x00", b"")
+                    try:
+                        ps1_cmd = base64.b64decode(cmd[idx + 1]).replace(b"\x00", b"")
+                    except Exception:
+                        # Probably a broken script
+                        return
                 break
             elif re.match(PWR_CMD_RE, part.encode()):
                 if cmd[idx + 1][0] in ["'", '"']:
@@ -502,9 +514,9 @@ class BatchDeobfuscator:
                         ):
                             last_part = i + 1
                             break
-                    ps1_cmd = " ".join(cmd[idx + 1: last_part]).encode()
+                    ps1_cmd = " ".join(cmd[idx + 1 : last_part]).encode()
                 else:
-                    ps1_cmd = " ".join(cmd[idx + 1:]).encode()
+                    ps1_cmd = " ".join(cmd[idx + 1 :]).encode()
                 break
             elif re.match(PWR_FILE_RE, part.encode()):
                 # Found powershell execution of file, but not worth extracting the filename as a file
@@ -529,6 +541,19 @@ class BatchDeobfuscator:
 
         if ps1_cmd:
             self.exec_ps1.append(ps1_cmd.strip(b'"'))
+
+    def interpret_mshta(self, cmd):
+        self.traits["mshta"].append(cmd)
+
+    def interpret_rundll32(self, cmd):
+        # The command is supposed to be split on "," but we're getting rid of them earlier.
+        # If we every fix the loss of commas, we need to fix this split.
+        split_cmd = cmd.split(" ")
+        if split_cmd[1].lower() in self.modified_filesystem:
+            rundll_struct = {}
+            if self.modified_filesystem[split_cmd[1].lower()]["type"] == "download":
+                rundll_struct["url"] = self.modified_filesystem[split_cmd[1].lower()]["src"]
+            self.traits["rundll32-execution"].append((cmd, rundll_struct))
 
     def interpret_copy(self, cmd):
         split_cmd = []
@@ -586,7 +611,7 @@ class BatchDeobfuscator:
                         break
                     last -= 1
             index += 1
-        normalized_comm = normalized_comm[index: last + 1]
+        normalized_comm = normalized_comm[index : last + 1]
 
         if not normalized_comm.strip() or normalized_comm == "@":
             return
@@ -650,6 +675,12 @@ class BatchDeobfuscator:
             # In case the target executable is a copy/lnk to powershell.exe, makes it simpler to parse the command
             patch_cmd = normalized_comm.lstrip(command)
             self.interpret_powershell(f"powershell.exe {patch_cmd}")
+
+        if command.endswith("mshta") or command.endswith("mshta.exe"):
+            self.interpret_mshta(normalized_comm)
+
+        if command.endswith("rundll32") or command.endswith("rundll32.exe"):
+            self.interpret_rundll32(normalized_comm)
 
         if command == "copy":
             self.interpret_copy(normalized_comm)
@@ -843,7 +874,7 @@ class BatchDeobfuscator:
                         state = "var_s_2"
 
         if state in ["var_s", "var_s_2"]:
-            normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1:]
+            normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1 :]
         elif state == "escape":
             normalized_com += "^"
 
