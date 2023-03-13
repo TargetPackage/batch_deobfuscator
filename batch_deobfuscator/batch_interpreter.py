@@ -133,6 +133,11 @@ class BatchDeobfuscator:
             except argparse.ArgumentError:
                 pass
 
+        self.powershell_invoke_webrequest_parser = argparse.ArgumentParser()
+        # We may need to handle all possible casing for those
+        self.powershell_invoke_webrequest_parser.add_argument("-uri", dest="uri")
+        self.powershell_invoke_webrequest_parser.add_argument("-outfile", dest="outfile")
+
     def read_logical_line(self, path):
         with open(path, "r", encoding="utf-8", errors="ignore") as input_file:
             logical_line = ""
@@ -483,6 +488,15 @@ class BatchDeobfuscator:
         ps1_cmd = None
         # Assume the first element is the call to powershell
         cmd = normalized_comm.split()[1:]
+
+        if cmd[0].lower() == "invoke-webrequest":
+            # Parse this more similarly to curl than proper powershell
+            args, unknown = self.powershell_invoke_webrequest_parser.parse_known_args(cmd[1:])
+            if args.uri and args.outfile:
+                self.traits["download"].append((cmd, {"src": args.uri, "dst": args.outfile}))
+                self.modified_filesystem[args.outfile.lower()] = {"type": "download", "src": args.uri}
+                return
+
         for idx, part in enumerate(cmd):
             if re.match(ENC_RE, part.encode()):
                 if cmd[idx + 1][0] in ["'", '"']:
