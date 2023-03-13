@@ -493,7 +493,7 @@ class BatchDeobfuscator:
             # Parse this more similarly to curl than proper powershell
             args, unknown = self.powershell_invoke_webrequest_parser.parse_known_args(cmd[1:])
             if args.uri and args.outfile:
-                self.traits["download"].append((cmd, {"src": args.uri, "dst": args.outfile}))
+                self.traits["download"].append((normalized_comm, {"src": args.uri, "dst": args.outfile}))
                 self.modified_filesystem[args.outfile.lower()] = {"type": "download", "src": args.uri}
                 return
 
