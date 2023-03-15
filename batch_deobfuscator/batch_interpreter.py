@@ -262,6 +262,9 @@ class BatchDeobfuscator:
             yield statement
 
     def get_commands(self, logical_line):
+        if logical_line[:3].lower() == "rem":
+            yield logical_line.strip()
+            return
         state = "init"
         counter = 0
         start_command = 0
