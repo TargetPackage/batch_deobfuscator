@@ -262,7 +262,7 @@ class BatchDeobfuscator:
             yield statement
 
     def get_commands(self, logical_line):
-        if logical_line[:3].lower() == "rem":
+        if logical_line[:4].strip().lower() == "rem":
             yield logical_line.strip()
             return
         state = "init"
@@ -611,7 +611,7 @@ class BatchDeobfuscator:
         self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
     def interpret_command(self, normalized_comm):
-        if normalized_comm[:3].lower() == "rem":
+        if normalized_comm[:4].strip().lower() == "rem":
             return
 
         # We need to keep the last space in case the command is "set EXP=43 " so that the value will be "43 "
@@ -750,7 +750,7 @@ class BatchDeobfuscator:
 
     # pushdown automata
     def normalize_command(self, command):
-        if command[:3].lower() == "rem":
+        if command[:4].strip().lower() == "rem":
             return command
 
         state = "init"
