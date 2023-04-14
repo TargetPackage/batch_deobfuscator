@@ -743,3 +743,10 @@ class TestUnittests:
         deobfuscator = BatchDeobfuscator()
         res = list(deobfuscator.get_commands(cmd))
         assert res == command_list
+
+    @staticmethod
+    def test_keep_quotes_on_set():
+        deobfuscator = BatchDeobfuscator()
+        cmd = 'set "ab= ""'
+        res = deobfuscator.normalize_command(cmd)
+        assert res == cmd

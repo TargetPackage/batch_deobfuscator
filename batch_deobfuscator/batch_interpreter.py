@@ -762,7 +762,7 @@ class BatchDeobfuscator:
             if state == "init":  # init state
                 if char == '"':  # quote is on
                     state = "str_s"
-                    if normalized_com and normalized_com[-1] == '"':
+                    if normalized_com and normalized_com[-1] == '"' and normalized_com[:3].lower() != "set":
                         normalized_com = normalized_com[:-1]
                     else:
                         normalized_com += char
