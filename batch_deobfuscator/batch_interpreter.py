@@ -43,6 +43,15 @@ RARE_LOLBAS = [
 ]
 
 
+def line_is_comment(line: str) -> bool:
+    if line[:4].strip().lower() == "rem":
+        return True
+    # https://stackoverflow.com/questions/16632524/what-does-double-colon-mean-in-dos-batch-files
+    if len(line) >= 2 and line[0] == ":" and line[1] in string.punctuation:
+        return True
+    return False
+
+
 class BatchDeobfuscator:
     def __init__(self, complex_one_liner_threshold=4):
         self.file_path = None
@@ -262,7 +271,7 @@ class BatchDeobfuscator:
             yield statement
 
     def get_commands(self, logical_line):
-        if logical_line[:4].strip().lower() == "rem":
+        if line_is_comment(logical_line):
             yield logical_line.strip()
             return
         state = "init"
@@ -556,8 +565,12 @@ class BatchDeobfuscator:
             if ps1_cmd is None:
                 ps1_cmd = " ".join(cmd[last_option:]).encode()
 
+        # Strip double-quotes if they are surrounding the command
+        while len(ps1_cmd) > 2 and ps1_cmd[0] == 34 and ps1_cmd[-1] == 34:
+            ps1_cmd = ps1_cmd[1:-1]
+
         if ps1_cmd:
-            self.exec_ps1.append(ps1_cmd.strip(b'"'))
+            self.exec_ps1.append(ps1_cmd)
 
     def interpret_mshta(self, cmd):
         self.traits["mshta"].append(cmd)
@@ -611,7 +624,7 @@ class BatchDeobfuscator:
         self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
     def interpret_command(self, normalized_comm):
-        if normalized_comm[:4].strip().lower() == "rem":
+        if line_is_comment(normalized_comm):
             return
 
         # We need to keep the last space in case the command is "set EXP=43 " so that the value will be "43 "
@@ -640,6 +653,15 @@ class BatchDeobfuscator:
         command = normalized_comm_lower.split()[0]
         if len(normalized_comm_lower.split("/")[0]) < len(command):
             command = normalized_comm_lower.split("/")[0]
+
+        # Some commands like set cannot be split by double-quotes, but cmd and powershell can.
+        if '""' in command:
+            ori_cmd_len = len(command)
+            command = command.replace('""', "")
+            normalized_comm = normalized_comm[:ori_cmd_len].replace('""', "") + normalized_comm[ori_cmd_len:]
+            normalized_comm_lower = (
+                normalized_comm_lower[:ori_cmd_len].replace('""', "") + normalized_comm_lower[ori_cmd_len:]
+            )
 
         if command in self.modified_filesystem:
             self.traits["manipulated-content-execution"].append((normalized_comm_lower, command))
@@ -750,7 +772,7 @@ class BatchDeobfuscator:
 
     # pushdown automata
     def normalize_command(self, command):
-        if command[:4].strip().lower() == "rem":
+        if line_is_comment(command):
             return command
 
         state = "init"
@@ -762,10 +784,7 @@ class BatchDeobfuscator:
             if state == "init":  # init state
                 if char == '"':  # quote is on
                     state = "str_s"
-                    if normalized_com and normalized_com[-1] == '"' and normalized_com[:3].lower() != "set":
-                        normalized_com = normalized_com[:-1]
-                    else:
-                        normalized_com += char
+                    normalized_com += char
                 elif char == "," or char == ";":  # or char == "\t": EDIT: How about we keep those tabs?
                     # commas (",") are replaced by spaces, unless they are part of a string in doublequotes
                     # semicolons (";") are replaced by spaces, unless they are part of a string in doublequotes

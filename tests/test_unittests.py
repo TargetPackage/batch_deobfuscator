@@ -603,8 +603,29 @@ class TestUnittests:
     @staticmethod
     def test_double_double_quote_stripping():
         deobfuscator = BatchDeobfuscator()
-        cmd = deobfuscator.normalize_command('cmd /C "pow""ershell -e ZQBjAGgAbwAgACIAVwBpAHoAYQByAGQAIgA="')
-        assert cmd == 'cmd /C "powershell -e ZQBjAGgAbwAgACIAVwBpAHoAYQByAGQAIgA="'
+        cmd = 'c""md /C "echo A""B""C"'
+        cmd2 = deobfuscator.normalize_command('c""md /C "echo A""B""C"')
+        assert cmd == cmd2
+        deobfuscator.interpret_command(cmd2)
+        assert len(deobfuscator.exec_cmd) == 1
+        assert deobfuscator.exec_cmd[0] == 'echo A""B""C'
+        deobfuscator.exec_cmd.clear()
+
+        cmd = 'cmd /C "pow""ershell -e ZQBjAGgAbwAgACIAV""wBpAHoAYQByAGQAIgA="'
+        cmd2 = deobfuscator.normalize_command(cmd)
+        assert cmd == cmd2
+        deobfuscator.interpret_command(cmd2)
+        assert len(deobfuscator.exec_cmd) == 1
+        assert deobfuscator.exec_cmd[0] == 'pow""ershell -e ZQBjAGgAbwAgACIAV""wBpAHoAYQByAGQAIgA='
+        deobfuscator.exec_cmd.clear()
+
+        cmd = 'pow""ershell -e ZQBjAGgAbwAgACIAV""wBpAHoAYQByAGQAIgA='
+        cmd2 = deobfuscator.normalize_command(cmd)
+        assert cmd == cmd2
+        deobfuscator.interpret_command(cmd2)
+        assert len(deobfuscator.exec_ps1) == 1
+        assert deobfuscator.exec_ps1[0] == b'echo "Wizard"'
+        deobfuscator.exec_ps1.clear()
 
     @staticmethod
     @pytest.mark.parametrize(
