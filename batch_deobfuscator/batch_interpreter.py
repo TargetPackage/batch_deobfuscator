@@ -317,6 +317,7 @@ class BatchDeobfuscator:
 
 
     def get_value(self, variable):
+        # This is where instances of a variable are replaced by their value
         str_substitution = (
           r"([%!])(?P<variable>[\"^|!\w#$'()*+,-.?@\[\]`{}~\s+]+)"
           r"("
@@ -873,6 +874,14 @@ class BatchDeobfuscator:
                     # Two `%` chars in a row
                     normalized_com += char
                     state = stack.pop()
+                elif char == "=" and normalized_com[-1] == "%":
+                    # `%=` is used for undocumented dynamic variables, which cannot be used with `set`
+                    # due to the `=` character being used as a delimiter. It is most commonly seen in
+                    # `%=exitcodeAscii%` in conjunction with `set /a` to get the exit code of the last
+                    # command, usually ran by `cmd /c` for further obfuscation.
+                    # More info: https://ss64.com/nt/syntax-variables.html
+                    normalized_com += char
+                    state = "inside_dynamic_var"
                 elif char == "^":
                     # Do not escape in vars?
                     # state = "escape"
@@ -913,6 +922,13 @@ class BatchDeobfuscator:
                 elif char == "^":
                     state = "escape"
                     stack.append("delayed_var_start")
+                else:
+                    normalized_com += char
+            
+            elif state == "inside_dynamic_var":
+                if char == "%":
+                    normalized_com += char
+                    state = stack.pop()
                 else:
                     normalized_com += char
 
