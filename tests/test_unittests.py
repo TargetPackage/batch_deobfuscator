@@ -51,189 +51,189 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "var, echo, result",
-        [
-            # Simple
-            # No space
-            ("set EXP=43", "echo *%EXP%*", "echo *43*"),
-            ("set EXP=43", "echo *%EXP %*", "echo **"),
-            ("set EXP=43", "echo *% EXP%*", "echo **"),
-            ("set EXP=43", "echo *% EXP %*", "echo **"),
-            # Space after var
-            ("set EXP =43", "echo *%EXP%*", "echo **"),
-            ("set EXP =43", "echo *%EXP %*", "echo *43*"),
-            ("set EXP =43", "echo *% EXP%*", "echo **"),
-            ("set EXP =43", "echo *% EXP %*", "echo **"),
-            # Space after equal
-            ("set EXP= 43", "echo *%EXP%*", "echo * 43*"),
-            ("set EXP= 43", "echo *%EXP %*", "echo **"),
-            ("set EXP= 43", "echo *% EXP%*", "echo **"),
-            ("set EXP= 43", "echo *% EXP %*", "echo **"),
-            # Space after value
-            ("set EXP=43 ", "echo *%EXP%*", "echo *43 *"),
-            ("set EXP=43 ", "echo *%EXP %*", "echo **"),
-            ("set EXP=43 ", "echo *% EXP%*", "echo **"),
-            ("set EXP=43 ", "echo *% EXP %*", "echo **"),
-            # Space after var and after equal
-            ("set EXP = 43", "echo *%EXP%*", "echo **"),
-            ("set EXP = 43", "echo *%EXP %*", "echo * 43*"),
-            ("set EXP = 43", "echo *% EXP%*", "echo **"),
-            ("set EXP = 43", "echo *% EXP %*", "echo **"),
-            # Double quote
-            # Single quote for both var and value
-            ("set \"'EXP=43'\"", "echo *%EXP%*", "echo **"),
-            ("set \"'EXP=43'\"", "echo *%EXP %*", "echo **"),
-            ("set \"'EXP=43'\"", "echo *% EXP%*", "echo **"),
-            ("set \"'EXP=43'\"", "echo *% EXP %*", "echo **"),
-            ("set \"'EXP=43'\"", "echo *%'EXP%*", "echo *43'*"),
-            # Space after var
-            ('set "EXP =43"', "echo *%EXP%*", "echo **"),
-            ('set "EXP =43"', "echo *%EXP %*", "echo *43*"),
-            ('set "EXP =43"', "echo *% EXP%*", "echo **"),
-            ('set "EXP =43"', "echo *% EXP %*", "echo **"),
-            # Space after equal
-            ('set "EXP= 43"', "echo *%EXP%*", "echo * 43*"),
-            ('set "EXP= 43"', "echo *%EXP %*", "echo **"),
-            ('set "EXP= 43"', "echo *% EXP%*", "echo **"),
-            ('set "EXP= 43"', "echo *% EXP %*", "echo **"),
-            # Space after var and after equal
-            ('set "EXP = 43"', "echo *%EXP%*", "echo **"),
-            ('set "EXP = 43"', "echo *%EXP %*", "echo * 43*"),
-            ('set "EXP = 43"', "echo *% EXP%*", "echo **"),
-            ('set "EXP = 43"', "echo *% EXP %*", "echo **"),
-            # Space before var, after var, after equal and after value
-            ('set " EXP = 43 "', "echo *%EXP%*", "echo **"),
-            ('set " EXP = 43 "', "echo *%EXP %*", "echo * 43 *"),
-            ('set " EXP = 43 "', "echo *% EXP%*", "echo **"),
-            ('set " EXP = 43 "', "echo *% EXP %*", "echo **"),
-            # Single quote
-            ("set \"EXP='43'\"", "echo *%EXP%*", "echo *'43'*"),
-            ("set \"EXP=' 43'\"", "echo *%EXP%*", "echo *' 43'*"),
-            ("set \"EXP =' 43'\"", "echo *%EXP %*", "echo *' 43'*"),
-            ("set \"EXP = ' 43'\"", "echo *%EXP %*", "echo * ' 43'*"),
-            ("set 'EXP=\"43\"'", "echo *%'EXP%*", 'echo *"43"\'*'),
-            ("set \" EXP '=43 ' \" ", "echo *%EXP '%*", "echo *43 ' *"),
-            # Double quote as value
-            ('set EXP =43^"', "echo *%EXP %*", 'echo *43"*'),
-            ('set EXP =43^"3', "echo *%EXP %*", 'echo *43"3*'),
-            ('set "EXP=43^""', "echo *%EXP%*", 'echo *43"*'),
-            # ('set "EXP=43^"', "echo *%EXP%*", "echo *43*"),
-            ('set "EXP=43^"3"', "echo *%EXP%*", 'echo *43"3*'),
-            # ('set EXP=43^^"^|', "echo *%EXP%*", 'echo *43"|*'),
-            ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
-            # ('set ^"EXP=43"', "echo *%EXP%*", "echo *43*"),
-            # ('set ^"EXP=43""', "echo *%EXP%*", 'echo *43"*'),
-            # ('set "EXP=43""', "echo *%EXP%*", 'echo *43"*'),
-            # # Pipe values
-            # ('set EXP=43"|', "echo *%EXP%*", 'echo *43"|*'),
-            # ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
-            # Invalid syntax...
-            # ('set EXP=43^"|', "echo *%EXP%*", []),
-            # ('set EXP=43"^|', "echo *%EXP%*", 'echo *43"^|*'),
-            # ('set EXP=43"^^|', "echo *%EXP%*", 'echo *43"^^|*'),
-            # Getting into really weird stuff
-            ("set EXP=4=3", "echo *%EXP%*", "echo *4=3*"),
-            ('set ""EXP=43"', 'echo *%"EXP%*', "echo *43*"),
-            ('set ""EXP=4"3', 'echo *%"EXP%*', "echo *4*"),
-            ('set """EXP=43"', "echo *%EXP%*", "echo **"),
-            ('set """EXP=43"', 'echo *%""EXP%*', "echo *43*"),
-            ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),  # TODO: Wait, confirm that I was wrong..
-            # ('set "E^XP=43"', "echo *%EXP%*", "echo **"),  # TODO: Wait, confirm that I was wrong..
-            ('set " ^"EXP=43"', 'echo *%^"EXP%*', "echo *43*"),
-            ('set ^"EXP=43', "echo *%EXP%*", "echo *43*"),
-            ('set E^"XP=43', 'echo *%E"XP%*', "echo *43*"),
-            ('set E"XP=4"3', 'echo *%E"XP%*', 'echo *4"3*'),
-            ('set E"XP=4^""3', 'echo *%E"XP%*', 'echo *4""3*'),
-            ('set EXP^"=43', 'echo *%EXP"%*', "echo *43*"),
-            ("set EXP=43^^", "echo *%EXP%*", "echo *43*"),
-            ("set EXP=4^^3", "echo *%EXP%*", "echo *43*"),
-            ("set EXP=43^^ ", "echo *%EXP%*", "echo *43 *"),
-            ("set E^^XP=43", "echo *%E^XP%*", "echo *43*"),
-            ('set ^"E^^XP=43"', "echo *%E^XP%*", "echo *43*"),
-            ('set ^"E^^XP=43""', "echo *%E^XP%*", 'echo *43"*'),
-            ('set ^"E^^XP=43^"', "echo *%E^XP%*", "echo *43*"),
-            ('set ^"E^^XP=43', "echo *%E^XP%*", "echo *43*"),
-            ('set "E^^XP=43"', "echo *%E^^XP%*", "echo *43*"),
-            ('set "E^^XP=43', "echo *%E^^XP%*", "echo *43*"),
-            ('set E^"XP=4^"3', 'echo *%E"XP%*', 'echo *4"3*'),
-            ('set ^"EXP=4^"3', "echo *%EXP%*", "echo *4*"),
-            ('set ^"EXP= 4^"3', "echo *%EXP%*", "echo * 4*"),
-            ('set ^"E^"XP=43"', 'echo *%E"XP%*', "echo *43*"),
-            ('set ^"E^"XP=4^"3', 'echo *%E"XP%*', "echo *4*"),
-            ('set ^"E"XP=4^"3"', 'echo *%E"XP%*', 'echo *4"3*'),
-            ('set ^"E"XP=4^"3""', 'echo *%E"XP%*', 'echo *4"3"*'),
-            ('set "E"XP=4^"3""', 'echo *%E"XP%*', 'echo *4"3"*'),
-            ('set ^"E""XP=4^"3', 'echo *%E""XP%*', "echo *4*"),
-            ('set "E^"XP=43"', 'echo *%E^"XP%*', "echo *43*"),
-            ('set "E^"X"P=43"', 'echo *%E^"X"P%*', "echo *43*"),
-            ('set E"E^"XP=43"', 'echo *%E"E^"XP%*', 'echo *43"*'),
-            ('set E"E^"XP=43', 'echo *%E"E^"XP%*', "echo *43*"),
-            ('set E^"E"X"P=43"', 'echo *%E"E"X"P%*', 'echo *43"*'),
-            ('set E"E^"X"P=43"', 'echo *%E"E^"X"P%*', 'echo *43"*'),
-            ("set ^|EXP=43", "echo *%|EXP%*", "echo *43*"),
-            ("set EXP=43", "echo *%EXP:/=\\%*", "echo *43*"),
-            ("set EXP=43/43", "echo *%EXP:/=\\%*", "echo *43\\43*"),
-            ("set EXP=43", "echo *%EXP:\\=/%*", "echo *43*"),
-            ("set EXP=43\\43", "echo *%EXP:\\=/%*", "echo *43/43*"),
-            # TODO: Really, how should we handle that?
-            # 'set ""EXP=43'
-            # 'set'
-            # 'set E'
-            # 'set EXP'
-            # 'set ^"E^"XP=43'
-            # 'set ^"E""XP=43'
-            #
-            # option a
-            ('set /a "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('set /A "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('SET /A "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('SET /a "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ("set /a EXP = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('set /a ^"EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('set /a ^"E^"XP = 4 * 700 / 1000^"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ('set /a "EXP^" = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ("set /a EX^^P = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ("set /a EX^P = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
-            ("set /a EXP = 4 * OTHER", "echo *%EXP%*", "echo *(4 * OTHER)*"),
-            ("set/a EXP = 4 * 2", "echo *%EXP%*", "echo *(4 * 2)*"),
-            ("set/AEXP=43", "echo *%EXP%*", "echo *(43)*"),
-            ("set/AEXP=4 * 3", "echo *%EXP%*", "echo *(4 * 3)*"),
-            # TODO: Really, how should we handle that?
-            # 'set /a "EX|P = 4 * 700 / 1000'
-            # "set /a EX|P = 4 * 700 / 1000"
-            # "set /a EX^|P = 4 * 700 / 1000"
-            #
-            # option p
-            ('set /p "EXP"="What is"', 'echo *%EXP"%*', "echo *__input__*"),
-            ('set /p EXP="What is', "echo *%EXP%*", "echo *__input__*"),
-            ("set /p EXP=What is", "echo *%EXP%*", "echo *__input__*"),
-            ("SET /p EXP=What is", "echo *%EXP%*", "echo *__input__*"),
-            ("SET /P EXP=What is", "echo *%EXP%*", "echo *__input__*"),
-            ("set /P EXP=What is", "echo *%EXP%*", "echo *__input__*"),
-            ('set /p EXP "=What is', 'echo *%EXP "%*', "echo *__input__*"),
-            ('set /p  EXP "=What is', 'echo *%EXP "%*', "echo *__input__*"),
-            ('set /p "EXP =What is', "echo *%EXP %*", "echo *__input__*"),
-            ('set /p "EXP ="What is"', "echo *%EXP %*", "echo *__input__*"),
-            ('set /p E"XP =What is', 'echo *%E"XP %*', "echo *__input__*"),
-            ('set /p E^"XP ="What is"', 'echo *%E"XP %*', "echo *__input__*"),
-            ('set /p "E^"XP ="What is"', 'echo *%E^"XP %*', "echo *__input__*"),
-            ('set /p E^"XP =What is', 'echo *%E"XP %*', "echo *__input__*"),
-            ('set /p "E^|XP =What is', "echo *%E^|XP %*", "echo *__input__*"),
-            ("set /p E^|XP =What is", "echo *%E|XP %*", "echo *__input__*"),
-            ('set /p ^"EXP =What is', "echo *%EXP %*", "echo *__input__*"),
-            ("set /p ^|EXP =What is", "echo *%|EXP %*", "echo *__input__*"),
-            # TODO: Really, how should we handle that?
-            # 'set /p "EXP "=What is'
-            # 'set /p "E^"XP =What is'
-            # What about some weird echo statement now?
-            ("set EXP=43", "echo %EXP%", "echo 43"),
-            ("set EXP=43", "echo !EXP!", "echo 43"),
-            ("set EXP=43", "echo ^%EXP%", "echo 43"),
-            ("set EXP=43", "echo ^!EXP!", "echo 43"),
-            # ("set EXP=43", "echo ^%EX^P%", "echo 43"),  # That's wrong... it actually prints the next line. Ignoring.
-            ("set EXP=43", "echo ^!EX^P!", "echo 43"),
-            # ("set EXP=43", "echo ^%EXP^%", "echo 43"),  # That's wrong... it actually prints the next line. Ignoring.
-            ("set EXP=43", "echo ^!EXP^!", "echo 43"),
+      "var, echo, result",
+      [
+          # Simple
+          # No space
+          ("set EXP=43", "echo *%EXP%*", "echo *43*"),
+          ("set EXP=43", "echo *%EXP %*", "echo **"),
+          ("set EXP=43", "echo *% EXP%*", "echo **"),
+          ("set EXP=43", "echo *% EXP %*", "echo **"),
+          # Space after var
+          ("set EXP =43", "echo *%EXP%*", "echo **"),
+          ("set EXP =43", "echo *%EXP %*", "echo *43*"),
+          ("set EXP =43", "echo *% EXP%*", "echo **"),
+          ("set EXP =43", "echo *% EXP %*", "echo **"),
+          # Space after equal
+          ("set EXP= 43", "echo *%EXP%*", "echo * 43*"),
+          ("set EXP= 43", "echo *%EXP %*", "echo **"),
+          ("set EXP= 43", "echo *% EXP%*", "echo **"),
+          ("set EXP= 43", "echo *% EXP %*", "echo **"),
+          # Space after value
+          ("set EXP=43 ", "echo *%EXP%*", "echo *43 *"),
+          ("set EXP=43 ", "echo *%EXP %*", "echo **"),
+          ("set EXP=43 ", "echo *% EXP%*", "echo **"),
+          ("set EXP=43 ", "echo *% EXP %*", "echo **"),
+          # Space after var and after equal
+          ("set EXP = 43", "echo *%EXP%*", "echo **"),
+          ("set EXP = 43", "echo *%EXP %*", "echo * 43*"),
+          ("set EXP = 43", "echo *% EXP%*", "echo **"),
+          ("set EXP = 43", "echo *% EXP %*", "echo **"),
+          # Double quote
+          # Single quote for both var and value
+          ("set \"'EXP=43'\"", "echo *%EXP%*", "echo **"),
+          ("set \"'EXP=43'\"", "echo *%EXP %*", "echo **"),
+          ("set \"'EXP=43'\"", "echo *% EXP%*", "echo **"),
+          ("set \"'EXP=43'\"", "echo *% EXP %*", "echo **"),
+          ("set \"'EXP=43'\"", "echo *%'EXP%*", "echo *43'*"),
+          # Space after var
+          ('set "EXP =43"', "echo *%EXP%*", "echo **"),
+          ('set "EXP =43"', "echo *%EXP %*", "echo *43*"),
+          ('set "EXP =43"', "echo *% EXP%*", "echo **"),
+          ('set "EXP =43"', "echo *% EXP %*", "echo **"),
+          # Space after equal
+          ('set "EXP= 43"', "echo *%EXP%*", "echo * 43*"),
+          ('set "EXP= 43"', "echo *%EXP %*", "echo **"),
+          ('set "EXP= 43"', "echo *% EXP%*", "echo **"),
+          ('set "EXP= 43"', "echo *% EXP %*", "echo **"),
+          # Space after var and after equal
+          ('set "EXP = 43"', "echo *%EXP%*", "echo **"),
+          ('set "EXP = 43"', "echo *%EXP %*", "echo * 43*"),
+          ('set "EXP = 43"', "echo *% EXP%*", "echo **"),
+          ('set "EXP = 43"', "echo *% EXP %*", "echo **"),
+          # Space before var, after var, after equal and after value
+          ('set " EXP = 43 "', "echo *%EXP%*", "echo **"),
+          ('set " EXP = 43 "', "echo *%EXP %*", "echo * 43 *"),
+          ('set " EXP = 43 "', "echo *% EXP%*", "echo **"),
+          ('set " EXP = 43 "', "echo *% EXP %*", "echo **"),
+          # Single quote
+          ("set \"EXP='43'\"", "echo *%EXP%*", "echo *'43'*"),
+          ("set \"EXP=' 43'\"", "echo *%EXP%*", "echo *' 43'*"),
+          ("set \"EXP =' 43'\"", "echo *%EXP %*", "echo *' 43'*"),
+          ("set \"EXP = ' 43'\"", "echo *%EXP %*", "echo * ' 43'*"),
+          ("set 'EXP=\"43\"'", "echo *%'EXP%*", 'echo *"43"\'*'),
+          ("set \" EXP '=43 ' \" ", "echo *%EXP '%*", "echo *43 ' *"),
+          # Double quote as value
+          ('set EXP =43^"', "echo *%EXP %*", 'echo *43"*'),
+          ('set EXP =43^"3', "echo *%EXP %*", 'echo *43"3*'),
+          ('set "EXP=43^""', "echo *%EXP%*", 'echo *43"*'),
+          # ('set "EXP=43^"', "echo *%EXP%*", "echo *43*"),
+          ('set "EXP=43^"3"', "echo *%EXP%*", 'echo *43"3*'),
+          # ('set EXP=43^^"^|', "echo *%EXP%*", 'echo *43"|*'),
+          ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
+          # ('set ^"EXP=43"', "echo *%EXP%*", "echo *43*"),
+          # ('set ^"EXP=43""', "echo *%EXP%*", 'echo *43"*'),
+          # ('set "EXP=43""', "echo *%EXP%*", 'echo *43"*'),
+          # # Pipe values
+          # ('set EXP=43"|', "echo *%EXP%*", 'echo *43"|*'),
+          # ('set EXP=43^"^|', "echo *%EXP%*", 'echo *43"|*'),
+          # Invalid syntax...
+          # ('set EXP=43^"|', "echo *%EXP%*", []),
+          # ('set EXP=43"^|', "echo *%EXP%*", 'echo *43"^|*'),
+          # ('set EXP=43"^^|', "echo *%EXP%*", 'echo *43"^^|*'),
+          # Getting into really weird stuff
+          ("set EXP=4=3", "echo *%EXP%*", "echo *4=3*"),
+          ('set ""EXP=43"', 'echo *%"EXP%*', "echo *43*"),
+          ('set ""EXP=4"3', 'echo *%"EXP%*', "echo *4*"),
+          ('set """EXP=43"', "echo *%EXP%*", "echo **"),
+          ('set """EXP=43"', 'echo *%""EXP%*', "echo *43*"),
+          ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),  # TODO: Wait, confirm that I was wrong..
+          # ('set "E^XP=43"', "echo *%EXP%*", "echo **"),  # TODO: Wait, confirm that I was wrong..
+          ('set " ^"EXP=43"', 'echo *%^"EXP%*', "echo *43*"),
+          ('set ^"EXP=43', "echo *%EXP%*", "echo *43*"),
+          ('set E^"XP=43', 'echo *%E"XP%*', "echo *43*"),
+          ('set E"XP=4"3', 'echo *%E"XP%*', 'echo *4"3*'),
+          ('set E"XP=4^""3', 'echo *%E"XP%*', 'echo *4""3*'),
+          ('set EXP^"=43', 'echo *%EXP"%*', "echo *43*"),
+          ("set EXP=43^^", "echo *%EXP%*", "echo *43*"),
+          ("set EXP=4^^3", "echo *%EXP%*", "echo *43*"),
+          ("set EXP=43^^ ", "echo *%EXP%*", "echo *43 *"),
+          ("set E^^XP=43", "echo *%E^XP%*", "echo *43*"),
+          ('set ^"E^^XP=43"', "echo *%E^XP%*", "echo *43*"),
+          ('set ^"E^^XP=43""', "echo *%E^XP%*", 'echo *43"*'),
+          ('set ^"E^^XP=43^"', "echo *%E^XP%*", "echo *43*"),
+          ('set ^"E^^XP=43', "echo *%E^XP%*", "echo *43*"),
+          ('set "E^^XP=43"', "echo *%E^^XP%*", "echo *43*"),
+          ('set "E^^XP=43', "echo *%E^^XP%*", "echo *43*"),
+          ('set E^"XP=4^"3', 'echo *%E"XP%*', 'echo *4"3*'),
+          ('set ^"EXP=4^"3', "echo *%EXP%*", "echo *4*"),
+          ('set ^"EXP= 4^"3', "echo *%EXP%*", "echo * 4*"),
+          ('set ^"E^"XP=43"', 'echo *%E"XP%*', "echo *43*"),
+          ('set ^"E^"XP=4^"3', 'echo *%E"XP%*', "echo *4*"),
+          ('set ^"E"XP=4^"3"', 'echo *%E"XP%*', 'echo *4"3*'),
+          ('set ^"E"XP=4^"3""', 'echo *%E"XP%*', 'echo *4"3"*'),
+          ('set "E"XP=4^"3""', 'echo *%E"XP%*', 'echo *4"3"*'),
+          ('set ^"E""XP=4^"3', 'echo *%E""XP%*', "echo *4*"),
+          ('set "E^"XP=43"', 'echo *%E^"XP%*', "echo *43*"),
+          ('set "E^"X"P=43"', 'echo *%E^"X"P%*', "echo *43*"),
+          ('set E"E^"XP=43"', 'echo *%E"E^"XP%*', 'echo *43"*'),
+          ('set E"E^"XP=43', 'echo *%E"E^"XP%*', "echo *43*"),
+          ('set E^"E"X"P=43"', 'echo *%E"E"X"P%*', 'echo *43"*'),
+          ('set E"E^"X"P=43"', 'echo *%E"E^"X"P%*', 'echo *43"*'),
+          ("set ^|EXP=43", "echo *%|EXP%*", "echo *43*"),
+          ("set EXP=43", "echo *%EXP:/=\\%*", "echo *43*"),
+          ("set EXP=43/43", "echo *%EXP:/=\\%*", "echo *43\\43*"),
+          ("set EXP=43", "echo *%EXP:\\=/%*", "echo *43*"),
+          ("set EXP=43\\43", "echo *%EXP:\\=/%*", "echo *43/43*"),
+          # TODO: Really, how should we handle that?
+          # 'set ""EXP=43'
+          # 'set'
+          # 'set E'
+          # 'set EXP'
+          # 'set ^"E^"XP=43'
+          # 'set ^"E""XP=43'
+          #
+          # option a
+          ('set /a "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('set /A "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('SET /A "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('SET /a "EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ("set /a EXP = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('set /a ^"EXP = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('set /a ^"E^"XP = 4 * 700 / 1000^"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ('set /a "EXP^" = 4 * 700 / 1000"', "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ("set /a EX^^P = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ("set /a EX^P = 4 * 700 / 1000", "echo *%EXP%*", "echo *(4 * 700 / 1000)*"),
+          ("set /a EXP = 4 * OTHER", "echo *%EXP%*", "echo *(4 * OTHER)*"),
+          ("set/a EXP = 4 * 2", "echo *%EXP%*", "echo *(4 * 2)*"),
+          ("set/AEXP=43", "echo *%EXP%*", "echo *(43)*"),
+          ("set/AEXP=4 * 3", "echo *%EXP%*", "echo *(4 * 3)*"),
+          # TODO: Really, how should we handle that?
+          # 'set /a "EX|P = 4 * 700 / 1000'
+          # "set /a EX|P = 4 * 700 / 1000"
+          # "set /a EX^|P = 4 * 700 / 1000"
+          #
+          # option p
+          ('set /p "EXP"="What is"', 'echo *%EXP"%*', "echo *__input__*"),
+          ('set /p EXP="What is', "echo *%EXP%*", "echo *__input__*"),
+          ("set /p EXP=What is", "echo *%EXP%*", "echo *__input__*"),
+          ("SET /p EXP=What is", "echo *%EXP%*", "echo *__input__*"),
+          ("SET /P EXP=What is", "echo *%EXP%*", "echo *__input__*"),
+          ("set /P EXP=What is", "echo *%EXP%*", "echo *__input__*"),
+          ('set /p EXP "=What is', 'echo *%EXP "%*', "echo *__input__*"),
+          ('set /p  EXP "=What is', 'echo *%EXP "%*', "echo *__input__*"),
+          ('set /p "EXP =What is', "echo *%EXP %*", "echo *__input__*"),
+          ('set /p "EXP ="What is"', "echo *%EXP %*", "echo *__input__*"),
+          ('set /p E"XP =What is', 'echo *%E"XP %*', "echo *__input__*"),
+          ('set /p E^"XP ="What is"', 'echo *%E"XP %*', "echo *__input__*"),
+          ('set /p "E^"XP ="What is"', 'echo *%E^"XP %*', "echo *__input__*"),
+          ('set /p E^"XP =What is', 'echo *%E"XP %*', "echo *__input__*"),
+          ('set /p "E^|XP =What is', "echo *%E^|XP %*", "echo *__input__*"),
+          ("set /p E^|XP =What is", "echo *%E|XP %*", "echo *__input__*"),
+          ('set /p ^"EXP =What is', "echo *%EXP %*", "echo *__input__*"),
+          ("set /p ^|EXP =What is", "echo *%|EXP %*", "echo *__input__*"),
+          # TODO: Really, how should we handle that?
+          # 'set /p "EXP "=What is'
+          # 'set /p "E^"XP =What is'
+          # What about some weird echo statement now?
+          ("set EXP=43", "echo %EXP%", "echo 43"),
+          ("set EXP=43", "echo !EXP!", "echo 43"),
+          ("set EXP=43", "echo ^%EXP%", "echo 43"),
+          ("set EXP=43", "echo ^!EXP!", "echo 43"),
+          # ("set EXP=43", "echo ^%EX^P%", "echo 43"),  # That's wrong... it actually prints the next line. Ignoring.
+          ("set EXP=43", "echo ^!EX^P!", "echo 43"),
+          # ("set EXP=43", "echo ^%EXP^%", "echo 43"),  # That's wrong... it actually prints the next line. Ignoring.
+          ("set EXP=43", "echo ^!EXP^!", "echo 43"),
         ],
     )
     def test_set_command(var, echo, result):
@@ -280,57 +280,57 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "statement, commands",
-        [
-            ('IF "A"=="A" echo AAA', ['IF "A"=="A" (', "echo AAA", ")"]),
-            ('IF "A"=="A" (echo AAA)', ['IF "A"=="A" (', "echo AAA", ")"]),
-            # TODO: Improvements to the whole program so that it doesn't need to split into multiple lines
-            # It's going to break examples like
-            # 'IF "A"=="B" (echo AAA) ELSE echo abc)'
-            # Since wrapping "echo abc)" inside () will remove the print of the ) at the end of abc
-            ('IF "A"=="A" (echo AAA) ELSE echo BBB', ['IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"]),
-            (
-                'echo ABC && IF "A"=="A" (echo AAA) ELSE echo BBB',
-                ["echo ABC", 'IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"],
-            ),
-            (
-                'echo ABC && IF "A"=="A" (echo AAA) ELSE (echo BBB)',
-                ["echo ABC", 'IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"],
-            ),
-            (
-                'IF EXIST "%USERPROFILE%\\jin" GOTO REMOVE_DIR1',
-                ['IF EXIST "%USERPROFILE%\\jin" (', "GOTO REMOVE_DIR1", ")"],
-            ),
-            (
-                "IF defined EXP (echo Defined) ELSE (echo Undef)",
-                ["IF defined EXP (", "echo Defined", ") ELSE (", "echo Undef", ")"],
-            ),
-            (
-                "if %EXP% gtr 8192 ( set PORT=18192 & goto PORT_OK )",
-                ["if %EXP% gtr 8192 (", " set PORT=18192", "goto PORT_OK )"],
-            ),
-            ("if %EXP% gtr 8192 (", ["if %EXP% gtr 8192 ("]),
-            (
-                "if %errorLevel% == 0 (set ADMIN=1) else (set ADMIN=0)",
-                ["if %errorLevel% == 0 (", "set ADMIN=1", ") else (", "set ADMIN=0", ")"],
-            ),
-            (
-                'if exist "%USERPROFILE%\\Start Menu\\Programs" (echo AAA)',
-                ['if exist "%USERPROFILE%\\Start Menu\\Programs" (', "echo AAA", ")"],
-            ),
-            (
-                'if exist "%USERPROFILE%\\Start Menu\\Programs" echo AAA',
-                ['if exist "%USERPROFILE%\\Start Menu\\Programs" (', "echo AAA", ")"],
-            ),
-            (
-                "if [%var%]==[value] echo AAA",
-                ["if [%var%]==[value] (", "echo AAA", ")"],
-            ),
-            (
-                'if "%var%"==[value] echo AAA',
-                ['if "%var%"==[value] (', "echo AAA", ")"],
-            ),
-        ],
+      "statement, commands",
+      [
+        ('IF "A"=="A" echo AAA', ['IF "A"=="A" (', "echo AAA", ")"]),
+        ('IF "A"=="A" (echo AAA)', ['IF "A"=="A" (', "echo AAA", ")"]),
+        # TODO: Improvements to the whole program so that it doesn't need to split into multiple lines
+        # It's going to break examples like
+        # 'IF "A"=="B" (echo AAA) ELSE echo abc)'
+        # Since wrapping "echo abc)" inside () will remove the print of the ) at the end of abc
+        ('IF "A"=="A" (echo AAA) ELSE echo BBB', ['IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"]),
+        (
+          'echo ABC && IF "A"=="A" (echo AAA) ELSE echo BBB',
+          ["echo ABC", 'IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"],
+        ),
+        (
+          'echo ABC && IF "A"=="A" (echo AAA) ELSE (echo BBB)',
+          ["echo ABC", 'IF "A"=="A" (', "echo AAA", ") ELSE (", "echo BBB", ")"],
+        ),
+        (
+          'IF EXIST "%USERPROFILE%\\jin" GOTO REMOVE_DIR1',
+          ['IF EXIST "%USERPROFILE%\\jin" (', "GOTO REMOVE_DIR1", ")"],
+        ),
+        (
+          "IF defined EXP (echo Defined) ELSE (echo Undef)",
+          ["IF defined EXP (", "echo Defined", ") ELSE (", "echo Undef", ")"],
+        ),
+        (
+          "if %EXP% gtr 8192 ( set PORT=18192 & goto PORT_OK )",
+          ["if %EXP% gtr 8192 (", " set PORT=18192", "goto PORT_OK )"],
+        ),
+        ("if %EXP% gtr 8192 (", ["if %EXP% gtr 8192 ("]),
+        (
+          "if %errorLevel% == 0 (set ADMIN=1) else (set ADMIN=0)",
+          ["if %errorLevel% == 0 (", "set ADMIN=1", ") else (", "set ADMIN=0", ")"],
+        ),
+        (
+          'if exist "%USERPROFILE%\\Start Menu\\Programs" (echo AAA)',
+          ['if exist "%USERPROFILE%\\Start Menu\\Programs" (', "echo AAA", ")"],
+        ),
+        (
+          'if exist "%USERPROFILE%\\Start Menu\\Programs" echo AAA',
+          ['if exist "%USERPROFILE%\\Start Menu\\Programs" (', "echo AAA", ")"],
+        ),
+        (
+          "if [%var%]==[value] echo AAA",
+          ["if [%var%]==[value] (", "echo AAA", ")"],
+        ),
+        (
+          'if "%var%"==[value] echo AAA',
+          ['if "%var%"==[value] (', "echo AAA", ")"],
+        ),
+      ],
     )
     def test_if_statements(statement, commands):
         deobfuscator = BatchDeobfuscator()
@@ -338,31 +338,31 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "statement, commands",
-        [
-            # This is getting complicated
-            # Based on 2369ddd7c46c244ec0984bc196bea498ce49999202de2c29f91f129383bf8cd5
-            (
-                "if %PROCESSOR_ARCHITECTURE%==x86 (python -c \"print('x86')\") else (python -c \"print('not x86')\")",
-                [
-                    "if %PROCESSOR_ARCHITECTURE%==x86 (",
-                    "python -c \"print('x86')\"",
-                    ") else (",
-                    "python -c \"print('not x86')\"",
-                    ")",
-                ],
-            ),
-            (
-                """if %PROCESSOR_ARCHITECTURE%==x86 (python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]") else (python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]")""",
-                [
-                    "if %PROCESSOR_ARCHITECTURE%==x86 (",
-                    '''python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]"''',
-                    ") else (",
-                    '''python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]"''',
-                    ")",
-                ],
-            ),
-        ],
+      "statement, commands",
+      [
+        # This is getting complicated
+        # Based on 2369ddd7c46c244ec0984bc196bea498ce49999202de2c29f91f129383bf8cd5
+        (
+          "if %PROCESSOR_ARCHITECTURE%==x86 (python -c \"print('x86')\") else (python -c \"print('not x86')\")",
+          [
+            "if %PROCESSOR_ARCHITECTURE%==x86 (",
+            "python -c \"print('x86')\"",
+            ") else (",
+            "python -c \"print('not x86')\"",
+            ")",
+          ],
+        ),
+        (
+          """if %PROCESSOR_ARCHITECTURE%==x86 (python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]") else (python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]")""",
+          [
+            "if %PROCESSOR_ARCHITECTURE%==x86 (",
+            '''python -c "[print('True x86 %RANDOM%') if True else print('False x86 %RANDOM%')]"''',
+            ") else (",
+            '''python -c "[print('True not x86 %RANDOM%') if True else print('False not x86 %RANDOM%')]"''',
+            ")",
+          ],
+        ),
+      ],
     )
     def test_complicated_if_statements(statement, commands):
         deobfuscator = BatchDeobfuscator()
@@ -370,35 +370,35 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "statement, commands",
-        [
-            (
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no"],
-            ),
-            (
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no(",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no("],
-            ),
-            (
-                # TODO: This is not right, but will do for the moment.
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)"],
-            ),
-            (
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()"],
-            ),
-            (
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo oh no() else echo not again)",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo oh no(", ") else echo not again)"],
-            ),
-            # If the writer assumes the statement to always be true, the else statement can be invalid...
-            (
-                "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo if () else is so broken)",
-                ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo if (", ") else is so broken)"],
-            ),
-        ],
+      "statement, commands",
+      [
+        (
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no"],
+        ),
+        (
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no(",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no("],
+        ),
+        (
+          # TODO: This is not right, but will do for the moment.
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no)"],
+        ),
+        (
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 echo oh no()"],
+        ),
+        (
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo oh no() else echo not again)",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo oh no(", ") else echo not again)"],
+        ),
+        # If the writer assumes the statement to always be true, the else statement can be invalid...
+        (
+          "if %PROCESSOR_ARCHITECTURE%==AMD64 (echo if () else is so broken)",
+          ["if %PROCESSOR_ARCHITECTURE%==AMD64 (", "echo if (", ") else is so broken)"],
+        ),
+      ],
     )
     @pytest.mark.skip()
     def test_broken_if_statements(statement, commands):
@@ -427,40 +427,40 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, result",
-        [
-            ("echo %0", "echo script.bat"),
-            ("echo %1", "echo "),
-            ("echo %~0", "echo script.bat"),
-            ("echo %~1", "echo "),
-            ("echo %~s0", "echo C:\\Users\\al\\Downloads\\script.bat"),
-            ("echo %~s1", "echo "),
-            ("echo %~f0", "echo C:\\Users\\al\\Downloads\\script.bat"),
-            ("echo %~f1", "echo "),
-            ("echo %~d0", "echo C:"),
-            ("echo %~d1", "echo "),
-            ("echo %~p0", "echo \\Users\\al\\Downloads\\"),
-            ("echo %~p1", "echo "),
-            ("echo %~z0", "echo 700"),
-            ("echo %~z1", "echo "),
-            ("echo %~a0", "echo --a--------"),
-            ("echo %~a1", "echo "),
-            ("echo %~n0", "echo script"),
-            ("echo %~n1", "echo "),
-            ("echo %~x0", "echo .bat"),
-            ("echo %~x1", "echo "),
-            ("echo %~t0", "echo 12/30/2022 11:41 AM"),
-            ("echo %~t1", "echo "),
-            ("echo %~xsa0", "echo --a-------- .bat"),
-            ("echo %~nxst0", "echo 12/30/2022 11:41 AM script.bat"),
-            ("echo %~nst0", "echo 12/30/2022 11:41 AM script"),
-            ("echo %~atz0", "echo --a-------- 12/30/2022 11:41 AM 700"),
-            ("echo %~fdpnxsatz0", "echo --a-------- 12/30/2022 11:41 AM 700 C:\\Users\\al\\Downloads\\script.bat"),
-            ("echo %3c%3%A", "echo cA"),
-            ("echo %3c%3%A%", "echo c"),
-            ("echo %*", "echo "),
-            ("echo %*a", "echo a"),
-        ],
+      "cmd, result",
+      [
+        ("echo %0", "echo script.bat"),
+        ("echo %1", "echo "),
+        ("echo %~0", "echo script.bat"),
+        ("echo %~1", "echo "),
+        ("echo %~s0", "echo C:\\Users\\al\\Downloads\\script.bat"),
+        ("echo %~s1", "echo "),
+        ("echo %~f0", "echo C:\\Users\\al\\Downloads\\script.bat"),
+        ("echo %~f1", "echo "),
+        ("echo %~d0", "echo C:"),
+        ("echo %~d1", "echo "),
+        ("echo %~p0", "echo \\Users\\al\\Downloads\\"),
+        ("echo %~p1", "echo "),
+        ("echo %~z0", "echo 700"),
+        ("echo %~z1", "echo "),
+        ("echo %~a0", "echo --a--------"),
+        ("echo %~a1", "echo "),
+        ("echo %~n0", "echo script"),
+        ("echo %~n1", "echo "),
+        ("echo %~x0", "echo .bat"),
+        ("echo %~x1", "echo "),
+        ("echo %~t0", "echo 12/30/2022 11:41 AM"),
+        ("echo %~t1", "echo "),
+        ("echo %~xsa0", "echo --a-------- .bat"),
+        ("echo %~nxst0", "echo 12/30/2022 11:41 AM script.bat"),
+        ("echo %~nst0", "echo 12/30/2022 11:41 AM script"),
+        ("echo %~atz0", "echo --a-------- 12/30/2022 11:41 AM 700"),
+        ("echo %~fdpnxsatz0", "echo --a-------- 12/30/2022 11:41 AM 700 C:\\Users\\al\\Downloads\\script.bat"),
+        ("echo %3c%3%A", "echo cA"),
+        ("echo %3c%3%A%", "echo c"),
+        ("echo %*", "echo "),
+        ("echo %*a", "echo a"),
+      ],
     )
     def test_args(cmd, result):
         deobfuscator = BatchDeobfuscator()
@@ -578,21 +578,21 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, download_trait",
-        [
-            (
-                "curl.exe -LO https://www.7-zip.org/a/7z1805-x64.exe",
-                {"src": "https://www.7-zip.org/a/7z1805-x64.exe", "dst": "7z1805-x64.exe"},
-            ),
-            (
-                "curl.exe -o C:\\ProgramData\\output\\output.file 1.1.1.1/file.dat",
-                {"src": "1.1.1.1/file.dat", "dst": "C:\\ProgramData\\output\\output.file"},
-            ),
-            (
-                'curl ""http://1.1.1.1/zazaz/p~~/Y98g~~/"" -o 9jXqQZQh.dll',
-                {"src": "http://1.1.1.1/zazaz/p~~/Y98g~~/", "dst": "9jXqQZQh.dll"},
-            ),
-        ],
+      "cmd, download_trait",
+      [
+        (
+          "curl.exe -LO https://www.7-zip.org/a/7z1805-x64.exe",
+          {"src": "https://www.7-zip.org/a/7z1805-x64.exe", "dst": "7z1805-x64.exe"},
+        ),
+        (
+          "curl.exe -o C:\\ProgramData\\output\\output.file 1.1.1.1/file.dat",
+          {"src": "1.1.1.1/file.dat", "dst": "C:\\ProgramData\\output\\output.file"},
+        ),
+        (
+          'curl ""http://1.1.1.1/zazaz/p~~/Y98g~~/"" -o 9jXqQZQh.dll',
+          {"src": "http://1.1.1.1/zazaz/p~~/Y98g~~/", "dst": "9jXqQZQh.dll"},
+        ),
+      ],
     )
     def test_interpret_curl(cmd, download_trait):
         deobfuscator = BatchDeobfuscator()
@@ -629,14 +629,14 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, exec_cmd",
-        [
-            ('start /b cmd /c "echo Hi"', ["echo Hi"]),
-            ('start /b /i cmd /c "echo Hi"', ["echo Hi"]),
-            ('start /w cmd /c "echo Hi"', ["echo Hi"]),
-            ('start/B /WAIT cmd /c "echo Hi"', ["echo Hi"]),
-            ('start/WAIT /B cmd /c "echo Hi"', ["echo Hi"]),
-        ],
+      "cmd, exec_cmd",
+      [
+        ('start /b cmd /c "echo Hi"', ["echo Hi"]),
+        ('start /b /i cmd /c "echo Hi"', ["echo Hi"]),
+        ('start /w cmd /c "echo Hi"', ["echo Hi"]),
+        ('start/B /WAIT cmd /c "echo Hi"', ["echo Hi"]),
+        ('start/WAIT /B cmd /c "echo Hi"', ["echo Hi"]),
+      ],
     )
     def test_interpret_start(cmd, exec_cmd):
         deobfuscator = BatchDeobfuscator()
@@ -649,36 +649,36 @@ class TestUnittests:
     def test_posix_powershell():
         deobfuscator = BatchDeobfuscator()
         cmd = (
-            "powershell -Command \"$out = cat '%USERPROFILE%\\jin\\config.json' | "
-            "%%{$_ -replace '\\\"donate-level\\\": *\\d*,', '\\\"donate-level\\\": 1,'} | "
-            "Out-String; $out | Out-File -Encoding ASCII '%USERPROFILE%\\jin\\config.json'\" "
+          "powershell -Command \"$out = cat '%USERPROFILE%\\jin\\config.json' | "
+          "%%{$_ -replace '\\\"donate-level\\\": *\\d*,', '\\\"donate-level\\\": 1,'} | "
+          "Out-String; $out | Out-File -Encoding ASCII '%USERPROFILE%\\jin\\config.json'\" "
         )
         deobfuscator.interpret_command(cmd)
         assert len(deobfuscator.exec_ps1) == 1
         assert deobfuscator.exec_ps1[0] == (
-            b"$out = cat '%USERPROFILE%\\jin\\config.json' | "
-            b"%%{$_ -replace '\\\"donate-level\\\": *\\d*,', '\\\"donate-level\\\": 1,'} | "
-            b"Out-String; $out | Out-File -Encoding ASCII '%USERPROFILE%\\jin\\config.json'"
+          b"$out = cat '%USERPROFILE%\\jin\\config.json' | "
+          b"%%{$_ -replace '\\\"donate-level\\\": *\\d*,', '\\\"donate-level\\\": 1,'} | "
+          b"Out-String; $out | Out-File -Encoding ASCII '%USERPROFILE%\\jin\\config.json'"
         )
         deobfuscator.exec_ps1.clear()
 
         cmd = (
-            'powershell -noprofile -command "&{start-process powershell -ArgumentList'
-            ' \'-noprofile -file \\"%scriptPath%\\"\' -verb RunAs}"'
+          'powershell -noprofile -command "&{start-process powershell -ArgumentList'
+          ' \'-noprofile -file \\"%scriptPath%\\"\' -verb RunAs}"'
         )
         deobfuscator.interpret_command(cmd)
         assert len(deobfuscator.exec_ps1) == 1
         assert (
-            deobfuscator.exec_ps1[0]
-            == b"&{start-process powershell -ArgumentList '-noprofile -file \\\"%scriptPath%\\\"' -verb RunAs}"
+          deobfuscator.exec_ps1[0]
+          == b"&{start-process powershell -ArgumentList '-noprofile -file \\\"%scriptPath%\\\"' -verb RunAs}"
         )
 
     @staticmethod
     def test_non_posix_powershell():
         deobfuscator = BatchDeobfuscator()
         cmd = (
-            'powershell -Command "Get-AppxPackage -Name "Microsoft.OneDriveSync" > '
-            '"%WORKINGDIRONEDRIVE%\\OneDriveSparsePackage.txt" 2>&1'
+          'powershell -Command "Get-AppxPackage -Name "Microsoft.OneDriveSync" > '
+          '"%WORKINGDIRONEDRIVE%\\OneDriveSparsePackage.txt" 2>&1'
         )
         deobfuscator.interpret_command(cmd)
         assert len(deobfuscator.exec_ps1) == 1
@@ -722,14 +722,14 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, fs",
-        [
-            ('set/p str="a"a" "<nul>out.txt', ["out.txt"]),
-            ('set/p str="a"a" "<nul>OUt.tXt', ["out.txt"]),
-            ('set/p str="a"a" ">out.txt<nul', ["out.txt"]),
-            ('set/p str="a"a" ">out.txt', ["out.txt"]),
-            ('set/p str="a"a" "<nul', []),
-        ],
+      "cmd, fs",
+      [
+        ('set/p str="a"a" "<nul>out.txt', ["out.txt"]),
+        ('set/p str="a"a" "<nul>OUt.tXt', ["out.txt"]),
+        ('set/p str="a"a" ">out.txt<nul', ["out.txt"]),
+        ('set/p str="a"a" ">out.txt', ["out.txt"]),
+        ('set/p str="a"a" "<nul', []),
+      ],
     )
     def test_set_redirection(cmd, fs):
         deobfuscator = BatchDeobfuscator()
@@ -738,27 +738,27 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, command_list",
-        [
-            (
-                "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'",
-                ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'"],
-            ),
-            (
-                "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'&echo A",
-                ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'", "echo A"],
-            ),
-            (
-                '    curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"&echo A',
-                ['curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"', "echo A"],
-            ),
-            (
-                'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop',
-                [
-                    'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop'
-                ],
-            ),
-        ],
+      "cmd, command_list",
+      [
+        (
+          "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'",
+          ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'"],
+        ),
+        (
+          "    curl -X POST 'http://localhost:5572/rc/noop?potato=1&sausage=2'&echo A",
+          ["curl -X POST 'http://localhost:5572/rc/noop?potato=1", "sausage=2'", "echo A"],
+        ),
+        (
+          '    curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"&echo A',
+          ['curl -X POST "http://localhost:5572/rc/noop?potato=1&sausage=2"', "echo A"],
+        ),
+        (
+          'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop',
+          [
+            'curl -H "Content-Type: application/json" -X POST -d \'{"potato":2,"sausage":1}\' http://localhost:5572/rc/noop'
+          ],
+        ),
+      ],
     )
     def test_command_splitting(cmd, command_list):
         deobfuscator = BatchDeobfuscator()

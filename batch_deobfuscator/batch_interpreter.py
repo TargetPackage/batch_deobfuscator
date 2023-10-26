@@ -20,26 +20,26 @@ PWR_FILE_RE = rb"(?i)(?:-|/)f(?:i(?:l(?:e?)?)?)?$"
 
 # Gathered from https://gist.github.com/api0cradle/8cdc53e2a80de079709d28a2d96458c2
 RARE_LOLBAS = [
-    "forfiles",
-    "bash",
-    "scriptrunner",
-    "syncappvpublishingserver",
-    "hh.exe",
-    "msbuild",
-    "regsvcs",
-    "regasm",
-    "installutil",
-    "ieexec",
-    "msxsl",
-    "odbcconf",
-    "sqldumper",
-    "pcalua",
-    "appvlp",
-    "runscripthelper",
-    "infdefaultinstall",
-    "diskshadow",
-    "msdt",
-    "regsvr32",
+  "forfiles",
+  "bash",
+  "scriptrunner",
+  "syncappvpublishingserver",
+  "hh.exe",
+  "msbuild",
+  "regsvcs",
+  "regasm",
+  "installutil",
+  "ieexec",
+  "msxsl",
+  "odbcconf",
+  "sqldumper",
+  "pcalua",
+  "appvlp",
+  "runscripthelper",
+  "infdefaultinstall",
+  "diskshadow",
+  "msdt",
+  "regsvr32",
 ]
 
 
@@ -67,55 +67,55 @@ class BatchDeobfuscator:
         # fake it till you make it
         else:
             self.variables = {
-                "allusersprofile": "C:\\ProgramData",
-                "appdata": "C:\\Users\\puncher\\AppData\\Roaming",
-                "commonprogramfiles": "C:\\Program Files\\Common Files",
-                "commonprogramfiles(x86)": "C:\\Program Files (x86)\\Common Files",
-                "commonprogramw6432": "C:\\Program Files\\Common Files",
-                "computername": "MISCREANTTEARS",
-                "comspec": "C:\\WINDOWS\\system32\\cmd.exe",
-                "driverdata": "C:\\Windows\\System32\\Drivers\\DriverData",
-                "errorlevel": "0",  # Because nothing fails.
-                "fps_browser_app_profile_string": "Internet Explorer",
-                "fps_browser_user_profile_string": "Default",
-                "homedrive": "C:",
-                "homepath": "\\Users\\puncher",
-                "java_home": "C:\\Program Files\\Amazon Corretto\\jdk11.0.7_10",
-                "localappdata": "C:\\Users\\puncher\\AppData\\Local",
-                "logonserver": "\\\\MISCREANTTEARS",
-                "number_of_processors": "4",
-                "onedrive": "C:\\Users\\puncher\\OneDrive",
-                "os": "Windows_NT",
-                "path": (
-                    "C:\\Program Files\\Amazon Corretto\\jdk11.0.7_10\\bin;C:\\WINDOWS\\system32;"
-                    "C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;"
-                    "C:\\Program Files\\dotnet\\;C:\\Program Files\\Microsoft SQL Server\\130\\Tools\\Binn\\;"
-                    "C:\\Users\\puncher\\AppData\\Local\\Microsoft\\WindowsApps;"
-                    "%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;"
-                ),
-                "pathext": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
-                "processor_architecture": "AMD64",
-                "processor_identifier": "Intel Core Ti-83 Family 6 Model 158 Stepping 10, GenuineIntel",
-                "processor_level": "6",
-                "processor_revision": "9e0a",
-                "programdata": "C:\\ProgramData",
-                "programfiles": "C:\\Program Files",
-                "programfiles(x86)": "C:\\Program Files (x86)",
-                "programw6432": "C:\\Program Files",
-                "psmodulepath": "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
-                "public": "C:\\Users\\Public",
-                "random": "4",  # https://xkcd.com/221/
-                "sessionname": "Console",
-                "systemdrive": "C:",
-                "systemroot": "C:\\WINDOWS",
-                "temp": "C:\\Users\\puncher\\AppData\\Local\\Temp",
-                "tmp": "C:\\Users\\puncher\\AppData\\Local\\Temp",
-                "userdomain": "MISCREANTTEARS",
-                "userdomain_roamingprofile": "MISCREANTTEARS",
-                "username": "puncher",
-                "userprofile": "C:\\Users\\puncher",
-                "windir": "C:\\WINDOWS",
-                "__compat_layer": "DetectorsMessageBoxErrors",
+              "allusersprofile": "C:\\ProgramData",
+              "appdata": "C:\\Users\\puncher\\AppData\\Roaming",
+              "commonprogramfiles": "C:\\Program Files\\Common Files",
+              "commonprogramfiles(x86)": "C:\\Program Files (x86)\\Common Files",
+              "commonprogramw6432": "C:\\Program Files\\Common Files",
+              "computername": "MISCREANTTEARS",
+              "comspec": "C:\\WINDOWS\\system32\\cmd.exe",
+              "driverdata": "C:\\Windows\\System32\\Drivers\\DriverData",
+              "errorlevel": "0",  # Because nothing fails.
+              "fps_browser_app_profile_string": "Internet Explorer",
+              "fps_browser_user_profile_string": "Default",
+              "homedrive": "C:",
+              "homepath": "\\Users\\puncher",
+              "java_home": "C:\\Program Files\\Amazon Corretto\\jdk11.0.7_10",
+              "localappdata": "C:\\Users\\puncher\\AppData\\Local",
+              "logonserver": "\\\\MISCREANTTEARS",
+              "number_of_processors": "4",
+              "onedrive": "C:\\Users\\puncher\\OneDrive",
+              "os": "Windows_NT",
+              "path": (
+                "C:\\Program Files\\Amazon Corretto\\jdk11.0.7_10\\bin;C:\\WINDOWS\\system32;"
+                "C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;"
+                "C:\\Program Files\\dotnet\\;C:\\Program Files\\Microsoft SQL Server\\130\\Tools\\Binn\\;"
+                "C:\\Users\\puncher\\AppData\\Local\\Microsoft\\WindowsApps;"
+                "%USERPROFILE%\\AppData\\Local\\Microsoft\\WindowsApps;"
+              ),
+              "pathext": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
+              "processor_architecture": "AMD64",
+              "processor_identifier": "Intel Core Ti-83 Family 6 Model 158 Stepping 10, GenuineIntel",
+              "processor_level": "6",
+              "processor_revision": "9e0a",
+              "programdata": "C:\\ProgramData",
+              "programfiles": "C:\\Program Files",
+              "programfiles(x86)": "C:\\Program Files (x86)",
+              "programw6432": "C:\\Program Files",
+              "psmodulepath": "C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+              "public": "C:\\Users\\Public",
+              "random": "4",  # https://xkcd.com/221/
+              "sessionname": "Console",
+              "systemdrive": "C:",
+              "systemroot": "C:\\WINDOWS",
+              "temp": "C:\\Users\\puncher\\AppData\\Local\\Temp",
+              "tmp": "C:\\Users\\puncher\\AppData\\Local\\Temp",
+              "userdomain": "MISCREANTTEARS",
+              "userdomain_roamingprofile": "MISCREANTTEARS",
+              "username": "puncher",
+              "userprofile": "C:\\Users\\puncher",
+              "windir": "C:\\WINDOWS",
+              "__compat_layer": "DetectorsMessageBoxErrors",
             }
 
         # There are 211 lines coming out of curl --help, so I won't be parsing all the options
@@ -125,14 +125,14 @@ class BatchDeobfuscator:
         self.curl_parser.add_argument("-o", "--output", dest="output", help="Write to file instead of stdout")
         self.curl_parser.add_argument("-H", "--header", dest="header", help="Extra header to include")
         self.curl_parser.add_argument(
-            "-X", "--request", dest="command", default="GET", help="Specifies a custom request method"
+          "-X", "--request", dest="command", default="GET", help="Specifies a custom request method"
         )
         self.curl_parser.add_argument(
-            "-O",
-            "--remote-name",
-            dest="remote_name",
-            action="store_true",
-            help="Write output to a file named as the remote file",
+          "-O",
+          "--remote-name",
+          dest="remote_name",
+          action="store_true",
+          help="Write output to a file named as the remote file",
         )
         self.curl_parser.add_argument("url", help="URL")
         # Patch all possible one-character arguments
@@ -147,6 +147,7 @@ class BatchDeobfuscator:
         self.powershell_invoke_webrequest_parser.add_argument("-uri", dest="uri")
         self.powershell_invoke_webrequest_parser.add_argument("-outfile", dest="outfile")
 
+
     def read_logical_line(self, path):
         with open(path, "r", encoding="utf-8", errors="ignore") as input_file:
             logical_line = ""
@@ -158,20 +159,22 @@ class BatchDeobfuscator:
                 else:
                     logical_line += line + "\n"
 
+
     def find_closing_paren(self, statement):
         state = "init"
         counter = 0
         start_command = 0
         for char in statement:
             # print(f"C:{char}, S:{state}")
-            if state == "init":  # init state
-                if char == '"':  # quote is on
-                    state = "str_s"
+            if state == "init":
+                if char == '"':
+                    # Quote is on
+                    state = "quote_start"
                 elif char == "^":
                     state = "escape"
                 elif char == ")":
                     return statement[start_command:counter]
-            elif state == "str_s":
+            elif state == "quote_start":
                 if char == '"':
                     state = "init"
             elif state == "escape":
@@ -181,16 +184,17 @@ class BatchDeobfuscator:
 
         return statement
 
+
     def split_if_statement(self, statement):
         # TODO: Wrapping everything in () is wrong, but helps to analyze internal elements
         if_statement = (
-            r"(?P<conditional>(?P<if_statement>if)\s+(not\s+)?"
-            r"(?P<type>errorlevel\s+\d+\s+|exist\s+(\".*\"|[^\s]+)\s+|.+?==.+?\s+|"
-            r"(\/i\s+)?[^\s]+\s+(equ|neq|lss|leq|gtr|geq)\s+[^\s]+\s+|cmdextversion\s+\d\s+|defined\s+[^\s]+\s+)"
-            r"(?P<open_paren>\()?)(?P<true_statement_start>.*)"
+          r"(?P<conditional>(?P<if_statement>if)\s+(not\s+)?"
+          r"(?P<type>errorlevel\s+\d+\s+|exist\s+(\".*\"|[^\s]+)\s+|.+?==.+?\s+|"
+          r"(\/i\s+)?[^\s]+\s+(equ|neq|lss|leq|gtr|geq)\s+[^\s]+\s+|cmdextversion\s+\d\s+|defined\s+[^\s]+\s+)"
+          r"(?P<open_paren>\()?)(?P<true_statement_start>.*)"
         )
         else_statement = (
-            r"(?P<close_paren>\))?(\s+else\s+(?P<open_paren>\()?\s*(?P<false_statement_start>.*)(?P<ending_paren>\))?)"
+          r"(?P<close_paren>\))?(\s+else\s+(?P<open_paren>\()?\s*(?P<false_statement_start>.*)(?P<ending_paren>\))?)"
         )
         if_match = re.search(if_statement, statement, re.IGNORECASE)
         if if_match is not None:
@@ -206,7 +210,7 @@ class BatchDeobfuscator:
                 return
             yield true_statement
             else_match = re.search(
-                else_statement, statement[true_statement_start + len(true_statement) :], re.IGNORECASE
+              else_statement, statement[true_statement_start + len(true_statement) :], re.IGNORECASE
             )
             if else_match is None:
                 if statement[true_statement_start + len(true_statement) :]:
@@ -223,13 +227,13 @@ class BatchDeobfuscator:
 
                 if else_open_paren is not None:
                     false_statement = self.find_closing_paren(
-                        statement[
-                            true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
-                        ]
+                      statement[
+                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                      ]
                     )
                 else:
                     false_statement = statement[
-                        true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
+                      true_statement_start + len(true_statement) + else_match.span("false_statement_start")[0] :
                     ]
                 yield false_statement
                 yield ")"
@@ -237,13 +241,14 @@ class BatchDeobfuscator:
             # Broken statement, maybe a re-run
             yield statement
 
+
     def split_for_statement(self, statement):
         for_statement = (
-            r"(?P<loop>(?P<for_statement>for)\s+"
-            r"(?P<parameter>.+)"
-            r"\s+IN\s+\((?P<in_set>[^\)]+)\)"
-            r"\s+DO\s+"
-            r"(?P<open_paren>\()?)(?P<command>[^\)]*)(?P<close_paren>\))?"
+          r"(?P<loop>(?P<for_statement>for)\s+"
+          r"(?P<parameter>.+)"
+          r"\s+IN\s+\((?P<in_set>[^\)]+)\)"
+          r"\s+DO\s+"
+          r"(?P<open_paren>\()?)(?P<command>[^\)]*)(?P<close_paren>\))?"
         )
         match = re.search(for_statement, statement, re.IGNORECASE)
         if match is not None:
@@ -258,6 +263,7 @@ class BatchDeobfuscator:
             # Broken statement, maybe a re-run
             yield statement
 
+
     def get_commands_special_statement(self, statement):
         if statement.lower().startswith("if "):
             for part in self.split_if_statement(statement):
@@ -270,6 +276,7 @@ class BatchDeobfuscator:
         else:
             yield statement
 
+
     def get_commands(self, logical_line):
         if line_is_comment(logical_line):
             yield logical_line.strip()
@@ -279,9 +286,10 @@ class BatchDeobfuscator:
         start_command = 0
         for char in logical_line:
             # print(f"C:{char}, S:{state}")
-            if state == "init":  # init state
-                if char == '"':  # quote is on
-                    state = "str_s"
+            if state == "init":
+                if char == '"':
+                    # Quote is on
+                    state = "quote_start"
                 elif char == "^":
                     state = "escape"
                 elif char == "&" and logical_line[counter - 1] == ">":
@@ -293,7 +301,7 @@ class BatchDeobfuscator:
                         for part in self.get_commands_special_statement(cmd):
                             yield part
                     start_command = counter + 1
-            elif state == "str_s":
+            elif state == "quote_start":
                 if char == '"':
                     state = "init"
             elif state == "escape":
@@ -301,25 +309,24 @@ class BatchDeobfuscator:
 
             counter += 1
 
-        last_com = logical_line[start_command:].strip()
+        # Remove trailing newlines but not trailing spaces
+        last_com = logical_line[start_command:].rstrip("\n")
         if last_com != "":
             for part in self.get_commands_special_statement(last_com):
                 yield part
 
+
     def get_value(self, variable):
-
         str_substitution = (
-            r"([%!])(?P<variable>[\"^|!\w#$'()*+,-.?@\[\]`{}~\s+]+)"
-            r"("
-            r"(:~\s*(?P<index>[+-]?\d+)\s*(?:,\s*(?P<length>[+-]?\d+))?\s*)|"
-            r"(:(?P<s1>[^=]+)=(?P<s2>[^=]*))"
-            r")?(\1)"
+          r"([%!])(?P<variable>[\"^|!\w#$'()*+,-.?@\[\]`{}~\s+]+)"
+          r"("
+          r"(:~\s*(?P<index>[+-]?\d+)\s*(?:,\s*(?P<length>[+-]?\d+))?\s*)|"
+          r"(:(?P<s1>[^=]+)=(?P<s2>[^=]*))"
+          r")?(\1)"
         )
-
         matches = re.finditer(str_substitution, variable, re.MULTILINE)
 
         value = ""
-
         for matchNum, match in enumerate(matches):
             var_name = match.group("variable").lower()
             if var_name in self.variables:
@@ -353,6 +360,7 @@ class BatchDeobfuscator:
         if value == "^":
             return value
         return value.rstrip("^")
+
 
     def interpret_set(self, cmd):
         state = "init"
@@ -431,6 +439,7 @@ class BatchDeobfuscator:
                     old_state = None
 
         if option == "a":
+            # Arithmetic expression: https://ss64.com/nt/set.html#expressions
             var_name = var_name.strip(" ")
             for char in QUOTED_CHARS:
                 var_name = var_name.replace(char, "")
@@ -473,6 +482,7 @@ class BatchDeobfuscator:
 
         return (var_name, var_value)
 
+
     def interpret_curl(self, cmd):
         # Batch specific obfuscation that is not handled before for echo/variable purposes, can be stripped here
         cmd = cmd.replace('""', "")
@@ -495,6 +505,7 @@ class BatchDeobfuscator:
         self.traits["download"].append((cmd, {"src": url, "dst": dst}))
         if dst:
             self.modified_filesystem[dst.lower()] = {"type": "download", "src": url}
+
 
     def interpret_powershell(self, normalized_comm):
         ps1_cmd = None
@@ -531,6 +542,7 @@ class BatchDeobfuscator:
                         # Probably a broken script
                         return
                 break
+            
             elif re.match(PWR_CMD_RE, part.encode()):
                 if cmd[idx + 1][0] in ["'", '"']:
                     last_part = idx + 1
@@ -544,6 +556,7 @@ class BatchDeobfuscator:
                 else:
                     ps1_cmd = " ".join(cmd[idx + 1 :]).encode()
                 break
+            
             elif re.match(PWR_FILE_RE, part.encode()):
                 # Found powershell execution of file, but not worth extracting the filename as a file
                 return
@@ -572,8 +585,10 @@ class BatchDeobfuscator:
         if ps1_cmd:
             self.exec_ps1.append(ps1_cmd)
 
+
     def interpret_mshta(self, cmd):
         self.traits["mshta"].append(cmd)
+
 
     def interpret_rundll32(self, cmd):
         # The command is supposed to be split on "," but we're getting rid of them earlier.
@@ -584,6 +599,7 @@ class BatchDeobfuscator:
             if self.modified_filesystem[split_cmd[1].lower()]["type"] == "download":
                 rundll_struct["url"] = self.modified_filesystem[split_cmd[1].lower()]["src"]
             self.traits["rundll32-execution"].append((cmd, rundll_struct))
+
 
     def interpret_copy(self, cmd):
         split_cmd = []
@@ -623,14 +639,15 @@ class BatchDeobfuscator:
             self.traits["windows-util-manipulation"].append((cmd, {"src": src, "dst": dst}))
         self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
+
     def interpret_command(self, normalized_comm):
         if line_is_comment(normalized_comm):
             return
 
-        # We need to keep the last space in case the command is "set EXP=43 " so that the value will be "43 "
+        # We need to keep trailing spaces in case the command is "set EXP=43 ", so that the value will be "43 "
         # normalized_comm = normalized_comm.strip()
 
-        # remove paranthesis
+        # Remove parenthesis
         index = 0
         last = len(normalized_comm) - 1
         while index < last and (normalized_comm[index] == " " or normalized_comm[index] == "("):
@@ -646,6 +663,8 @@ class BatchDeobfuscator:
         if not normalized_comm.strip() or normalized_comm == "@":
             return
 
+        # The "@" symbol tells the command to be less verbose, which we normally don't want.
+        # Source: https://stackoverflow.com/a/21077142/6456163
         if normalized_comm[0] == "@":
             normalized_comm = normalized_comm[1:]
 
@@ -654,13 +673,13 @@ class BatchDeobfuscator:
         if len(normalized_comm_lower.split("/")[0]) < len(command):
             command = normalized_comm_lower.split("/")[0]
 
-        # Some commands like set cannot be split by double-quotes, but cmd and powershell can.
+        # Some commands like `set` cannot be split by double quotes, but `cmd` and `powershell` can.
         if '""' in command:
             ori_cmd_len = len(command)
             command = command.replace('""', "")
             normalized_comm = normalized_comm[:ori_cmd_len].replace('""', "") + normalized_comm[ori_cmd_len:]
             normalized_comm_lower = (
-                normalized_comm_lower[:ori_cmd_len].replace('""', "") + normalized_comm_lower[ori_cmd_len:]
+              normalized_comm_lower[:ori_cmd_len].replace('""', "") + normalized_comm_lower[ori_cmd_len:]
             )
 
         if command in self.modified_filesystem:
@@ -669,7 +688,7 @@ class BatchDeobfuscator:
                 command = self.modified_filesystem[command]["src"]
 
         if command == "call":
-            # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be remove
+            # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be removed.
             # This shouldn't work:
             # call @set EXP=43
             # But this should:
@@ -679,11 +698,11 @@ class BatchDeobfuscator:
 
         if command == "start":
             start_re = (
-                r"start(.exe)?"
-                r"(\/min|\/max|\/wait|\/low|\/normal|\/abovenormal|\/belownormal|\/high|\/realtime|\/b|\/i|\/w|\s+)*"
-                # TODO: Add Node + Affinity options
-                # TODO: Add title + path keys
-                r"(?P<cmd>.*)"
+              r"start(.exe)?"
+              r"(\/min|\/max|\/wait|\/low|\/normal|\/abovenormal|\/belownormal|\/high|\/realtime|\/b|\/i|\/w|\s+)*"
+              # TODO: Add Node + Affinity options
+              # TODO: Add title + path keys
+              r"(?P<cmd>.*)"
             )
             match = re.match(start_re, normalized_comm, re.IGNORECASE)
             if match is not None and match.group("cmd") is not None:
@@ -698,7 +717,7 @@ class BatchDeobfuscator:
             return
 
         if command == "set":
-            # interpreting set command
+            # Interpreting set command
             var_name, var_value = self.interpret_set(normalized_comm[3:])
             if var_value == "":
                 if var_name.lower() in self.variables:
@@ -724,8 +743,10 @@ class BatchDeobfuscator:
         if command == "copy":
             self.interpret_copy(normalized_comm)
 
+
     def valid_percent_tilde(self, argument):
         return argument == "%" or (argument.startswith("%~") and all(x in "fdpnxsatz" for x in argument[2:]))
+
 
     def percent_tilde(self, argument):
         if argument[:2] == "%":
@@ -770,10 +791,15 @@ class BatchDeobfuscator:
 
         return value if value else "script.bat"
 
-    # pushdown automata
+
     def normalize_command(self, command):
         if line_is_comment(command):
             return command
+        
+        # `@echo off` is a special command that disables the echoing of commands,
+        # so we want to remove it so the script is more verbose
+        if command == "@echo off":
+            return "REM @echo off"
 
         state = "init"
         normalized_com = ""
@@ -781,51 +807,59 @@ class BatchDeobfuscator:
         traits = {"start_with_var": False, "var_used": 0}
         for char in command:
             # print(f"C:{char} S:{state} N:{normalized_com}")
-            if state == "init":  # init state
-                if char == '"':  # quote is on
-                    state = "str_s"
+            if state == "init":
+                if char == '"':
+                    # Quote is on
+                    state = "quote_start"
                     normalized_com += char
-                elif char == "," or char == ";":  # or char == "\t": EDIT: How about we keep those tabs?
+                elif char == "," or char == ";":
                     # commas (",") are replaced by spaces, unless they are part of a string in doublequotes
                     # semicolons (";") are replaced by spaces, unless they are part of a string in doublequotes
-                    # tabs are replaced by a single space
                     # http://www.robvanderwoude.com/parameters.php
                     normalized_com += " "
-                elif char == "^":  # next character must be escaped
+                elif char == "^":
+                    # Next character must be escaped
                     stack.append(state)
                     state = "escape"
-                elif char == "%":  # variable start
+                elif char == "%":
+                    # Normal variable start
                     variable_start = len(normalized_com)
                     normalized_com += char
                     stack.append(state)
-                    state = "var_s"
+                    state = "normal_var_start"
                 elif char == "!":
+                    # Delayed variable start, difference from `%` above is explained here:
+                    # https://stackoverflow.com/a/14347131/6456163
                     variable_start = len(normalized_com)
                     normalized_com += char
                     stack.append(state)
-                    state = "var_s_2"
+                    state = "delayed_var_start"
                 else:
                     normalized_com += char
-            elif state == "str_s":
+
+            elif state == "quote_start":
                 if char == '"':
                     state = "init"
                     normalized_com += char
                 elif char == "%":
                     variable_start = len(normalized_com)
                     normalized_com += char
-                    stack.append("str_s")
-                    state = "var_s"  # seen %
+                    stack.append("quote_start")
+                    # Track that we are inside a normal variable
+                    state = "normal_var_start"
                 elif char == "!":
                     variable_start = len(normalized_com)
                     normalized_com += char
-                    stack.append("str_s")
-                    state = "var_s_2"  # seen !
+                    stack.append("quote_start")
+                    # Track that we are inside a delayed execution variable
+                    state = "delayed_var_start"
                 elif char == "^":
                     state = "escape"
-                    stack.append("str_s")
+                    stack.append("quote_start")
                 else:
                     normalized_com += char
-            elif state == "var_s":
+
+            elif state == "normal_var_start":
                 if char == "%" and normalized_com[-1] != char:
                     normalized_com += char
                     value = self.get_value(normalized_com[variable_start:])
@@ -835,16 +869,18 @@ class BatchDeobfuscator:
                     normalized_com += self.normalize_command(value)
                     traits["var_used"] += 1
                     state = stack.pop()
-                elif char == "%":  # Two % in a row
+                elif char == "%":
+                    # Two `%` chars in a row
                     normalized_com += char
                     state = stack.pop()
                 elif char == "^":
                     # Do not escape in vars?
                     # state = "escape"
-                    # stack.append("var_s")
+                    # stack.append("normal_var_start")
                     normalized_com += char
                 elif char == "*" and len(normalized_com) == variable_start + 1:
-                    # Assume no parameter were passed
+                    # `%*` is a special variable that expands to all the parameters passed to the script,
+                    # which is usually used to forward the parameters to another script.
                     normalized_com = normalized_com[:variable_start]
                     state = stack.pop()
                 elif char.isdigit() and self.valid_percent_tilde(normalized_com[variable_start:]):
@@ -854,13 +890,15 @@ class BatchDeobfuscator:
                     if char == "0":
                         value = self.percent_tilde(normalized_com[variable_start:])
                     else:
-                        value = ""  # Assume no parameter were passed
+                        # Assume no parameter were passed
+                        value = ""
                     normalized_com = normalized_com[:variable_start]
                     normalized_com += value
                     state = stack.pop()
                 else:
                     normalized_com += char
-            elif state == "var_s_2":
+
+            elif state == "delayed_var_start":
                 if char == "!" and normalized_com[-1] != char:
                     normalized_com += char
                     value = self.get_value(normalized_com[variable_start:])
@@ -874,16 +912,17 @@ class BatchDeobfuscator:
                     normalized_com += char
                 elif char == "^":
                     state = "escape"
-                    stack.append("var_s_2")
+                    stack.append("delayed_var_start")
                 else:
                     normalized_com += char
+
             elif state == "escape":
                 if char in QUOTED_CHARS:
                     normalized_com += "^"
                 normalized_com += char
                 state = stack.pop()
                 if char == "%":
-                    if state == "var_s":
+                    if state == "normal_var_start":
                         value = self.get_value(normalized_com[variable_start:])
                         normalized_com = normalized_com[:variable_start]
                         if len(normalized_com) == 0:
@@ -894,9 +933,9 @@ class BatchDeobfuscator:
                     else:
                         variable_start = len(normalized_com) - 1
                         stack.append(state)
-                        state = "var_s"
+                        state = "normal_var_start"
                 elif char == "!":
-                    if state == "var_s_2":
+                    if state == "delayed_var_start":
                         value = self.get_value(normalized_com[variable_start:])
                         normalized_com = normalized_com[:variable_start]
                         if len(normalized_com) == 0:
@@ -907,9 +946,9 @@ class BatchDeobfuscator:
                     else:
                         variable_start = len(normalized_com) - 1
                         stack.append(state)
-                        state = "var_s_2"
+                        state = "delayed_var_start"
 
-        if state in ["var_s", "var_s_2"]:
+        if state in ["normal_var_start", "delayed_var_start"]:
             normalized_com = normalized_com[:variable_start] + normalized_com[variable_start + 1 :]
         elif state == "escape":
             normalized_com += "^"
@@ -919,6 +958,7 @@ class BatchDeobfuscator:
         self.traits["var_used"].append((command, normalized_com, traits["var_used"]))
 
         return normalized_com
+
 
     def analyze_logical_line(self, logical_line, working_directory, f, extracted_files):
         commands = self.get_commands(logical_line)
@@ -934,6 +974,7 @@ class BatchDeobfuscator:
                 for lolbas in RARE_LOLBAS:
                     if lolbas in normalized_comm:
                         self.traits["LOLBAS"].append({"LOLBAS": lolbas, "Command": normalized_comm})
+                        
                 if len(self.exec_cmd) > 0:
                     for child_cmd in self.exec_cmd:
                         child_deobfuscator = copy.deepcopy(self)
@@ -941,7 +982,7 @@ class BatchDeobfuscator:
                         child_fd, child_path = tempfile.mkstemp(suffix=".bat", prefix="child_", dir=working_directory)
                         with open(child_path, "w") as child_f:
                             child_deobfuscator.analyze_logical_line(
-                                child_cmd, working_directory, child_f, extracted_files
+                              child_cmd, working_directory, child_f, extracted_files
                             )
                         with open(child_path, "rb") as cmd_f:
                             sha256hash = hashlib.sha256(cmd_f.read()).hexdigest()
@@ -949,12 +990,13 @@ class BatchDeobfuscator:
                         shutil.move(child_path, os.path.join(working_directory, bat_filename))
                         extracted_files["batch"].append((bat_filename, sha256hash))
                     self.exec_cmd.clear()
+
                 if len(self.exec_ps1) > 0:
                     for child_ps1 in self.exec_ps1:
                         sha256hash = hashlib.sha256(child_ps1).hexdigest()
                         if any(
-                            extracted_file_hash == sha256hash
-                            for _, extracted_file_hash in extracted_files.get("powershell", [])
+                          extracted_file_hash == sha256hash
+                          for _, extracted_file_hash in extracted_files.get("powershell", [])
                         ):
                             continue
                         powershell_filename = f"{sha256hash[0:10]}.ps1"
@@ -963,6 +1005,7 @@ class BatchDeobfuscator:
                             ps1_f.write(child_ps1)
                         extracted_files["powershell"].append((powershell_filename, sha256hash))
                     self.exec_ps1.clear()
+
 
     def analyze(self, file_path, working_directory):
         extracted_files = defaultdict(list)
@@ -1036,6 +1079,9 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab=""):
     return str
 
 
+# NOTE: This function is not used anywhere in this file, but is exported to add the
+# ability to deobfuscate a batch file from another script. This essentially acts as
+# the library portion of the deobfuscator.
 def handle_bat_file(deobfuscator, fpath):
     strs = []
     if os.path.isfile(fpath):
@@ -1055,6 +1101,8 @@ def handle_bat_file(deobfuscator, fpath):
         return ""
 
 
+# NOTE: This is the portion that is used when the script is run directly,
+# and is not used when the script is imported as a library.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
@@ -1063,11 +1111,10 @@ if __name__ == "__main__":
     deobfuscator = BatchDeobfuscator()
 
     if args[0].file is not None:
-
         file_path = args[0].file
-
         for logical_line in deobfuscator.read_logical_line(args[0].file):
             interpret_logical_line(deobfuscator, logical_line)
+            
     else:
         print("Please enter an obfuscated batch command:")
         interpret_logical_line(deobfuscator, input())
