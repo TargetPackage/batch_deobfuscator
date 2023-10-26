@@ -15,9 +15,19 @@ python3 batch_interpreter.py --file c:\test\obfuscated_file.bat
 ```python
 from batch_deobfuscator.batch_interpreter import BatchDeobfuscator, handle_bat_file
 deobfuscator = BatchDeobfuscator()
-itsthewine=handle_bat_file(deobfuscator, "./obfuscated_file.bat")
+deobfuscated_script = handle_bat_file(deobfuscator, "./obfuscated_file.bat")
 ```
 
-## TODOs
-- [ ] Fix the issue mentioned [here](https://stackoverflow.com/a/77126882/6456163); prevent expanding on Windows variables automatically?
-- [ ] Combine with functionality of [this](https://github.com/danielbohannon/Invoke-DOSfuscation)
+## Developing
+
+### Setup
+```shell
+$ git clone https://github.com/TargetPackage/batch_deobfuscator
+$ cd batch_deobfuscator
+$ pip3 install -e ".[dev]"
+```
+
+### Testing
+```shell
+$ python3 -m pytest
+```
