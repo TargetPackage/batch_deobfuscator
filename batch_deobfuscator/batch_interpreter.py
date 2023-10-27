@@ -12,8 +12,8 @@ from collections import defaultdict
 from urllib.parse import urlparse
 
 # Allow args to be used across functions
-global args
-args = ()
+global cli_args
+cli_args = ()
 
 QUOTED_CHARS = ["|", ">", "<", '"', "^", "&"]
 
@@ -1070,14 +1070,14 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        if not child or args[0].verbose:
+        if not child or cli_args[0].verbose:
             print(tab + normalized_comm)
         if len(deobfuscator.exec_cmd) > 0:
             # Gives the user context that a child command is running, but doesn't
             # actually execute the code again, because that is being handled
             # by the inline `cmd /c` command. The `goto` serves as a multi-line
             # comment, since they aren't natively supported in batch.
-            if args[0].verbose:
+            if cli_args[0].verbose:
                 print(tab + "# [RUNNING IN CHILD CMD]")
                 print(tab + "goto comment")
             for child_cmd in deobfuscator.exec_cmd:
@@ -1085,7 +1085,7 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
                 child_deobfuscator.exec_cmd.clear()
                 interpret_logical_line(child_deobfuscator, child_cmd, tab=tab + "\t", child=True)
             deobfuscator.exec_cmd.clear()
-            if args[0].verbose:
+            if cli_args[0].verbose:
                 print(tab + ":comment")
                 print(tab + "# [END OF CHILD CMD]")
 
@@ -1096,19 +1096,19 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        if not child or args[0].verbose:
+        if not child or cli_args[0].verbose:
             str += tab + normalized_comm
         if len(deobfuscator.exec_cmd) > 0:
-            if args[0].verbose:
-                str += tab + "# [RUNNING IN CHILD CMD]"
-                str += tab + "goto comment"
+            if cli_args[0].verbose:
+                str += "\n" + tab + "# [RUNNING IN CHILD CMD]" + "\n"
+                str += tab + "goto comment" + "\n"
             for child_cmd in deobfuscator.exec_cmd:
                 child_deobfuscator = copy.deepcopy(deobfuscator)
                 child_deobfuscator.exec_cmd.clear()
-                interpret_logical_line_str(child_deobfuscator, child_cmd, tab=tab + "\t", child=True)
+                str += interpret_logical_line_str(child_deobfuscator, child_cmd, tab=tab + "\t", child=True) + "\n"
             deobfuscator.exec_cmd.clear()
-            if args[0].verbose:
-                str += tab + ":comment"
+            if cli_args[0].verbose:
+                str += tab + ":comment" + "\n"
                 str += tab + "# [END OF CHILD CMD]"
     return str
 
@@ -1130,7 +1130,7 @@ def handle_bat_file(deobfuscator, fpath):
             print(e)
             pass
     if strs:
-        return "\r\n".join(strs)
+        return "\n".join(strs)
     else:
         return ""
 
@@ -1140,16 +1140,27 @@ def handle_bat_file(deobfuscator, fpath):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
+    parser.add_argument("-o", "--output", type=str, help="The path the deobfuscated batch file should be written to")
     parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands")
-    args = parser.parse_known_args()
+    cli_args = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()
 
-    if args[0].file is not None:
-        file_path = args[0].file
-        for logical_line in deobfuscator.read_logical_line(args[0].file):
-            interpret_logical_line(deobfuscator, logical_line)
-            
+    if cli_args[0].file is not None:
+        file_path = cli_args[0].file
+        output = ""
+        for logical_line in deobfuscator.read_logical_line(cli_args[0].file):
+            if cli_args[0].output is not None:
+                output += interpret_logical_line_str(deobfuscator, logical_line) + "\n"
+            else:
+                interpret_logical_line(deobfuscator, logical_line)
+
+        if cli_args[0].output is not None:
+            with open(cli_args[0].output, "w") as f:
+                f.write(output)
+
     else:
-        print("Please enter an obfuscated batch command:")
-        interpret_logical_line(deobfuscator, input())
+        print("Enter an obfuscated batch command:")
+        deobfuscated = interpret_logical_line_str(deobfuscator, input())
+        print("\nDeobfuscated command:")
+        print(deobfuscated)
