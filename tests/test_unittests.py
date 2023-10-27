@@ -141,8 +141,7 @@ class TestUnittests:
         ('set ""EXP=4"3', 'echo *%"EXP%*', "echo *4*"),
         ('set """EXP=43"', "echo *%EXP%*", "echo **"),
         ('set """EXP=43"', 'echo *%""EXP%*', "echo *43*"),
-        ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),  # TODO: Wait, confirm that I was wrong..
-        # ('set "E^XP=43"', "echo *%EXP%*", "echo **"),  # TODO: Wait, confirm that I was wrong..
+        ('set "E^XP=43"', "echo *%EXP%*", "echo *43*"),
         ('set " ^"EXP=43"', 'echo *%^"EXP%*', "echo *43*"),
         ('set ^"EXP=43', "echo *%EXP%*", "echo *43*"),
         ('set E^"XP=43', 'echo *%E"XP%*', "echo *43*"),

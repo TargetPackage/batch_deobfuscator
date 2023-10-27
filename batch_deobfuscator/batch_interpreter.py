@@ -309,8 +309,8 @@ class BatchDeobfuscator:
 
             counter += 1
 
-        # Remove trailing newlines but not trailing spaces
-        last_com = logical_line[start_command:].rstrip("\n")
+        # Remove leading spaces and trailing newlines
+        last_com = logical_line[start_command:].lstrip(" ").rstrip("\n")
         if last_com != "":
             for part in self.get_commands_special_statement(last_com):
                 yield part
