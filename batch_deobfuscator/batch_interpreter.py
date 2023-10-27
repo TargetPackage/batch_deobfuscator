@@ -11,6 +11,10 @@ import tempfile
 from collections import defaultdict
 from urllib.parse import urlparse
 
+# Allow args to be used across functions
+global args
+args = ()
+
 QUOTED_CHARS = ["|", ">", "<", '"', "^", "&"]
 
 # Powershell detection
@@ -1061,37 +1065,51 @@ class BatchDeobfuscator:
         return bat_filename, extracted_files
 
 
-def interpret_logical_line(deobfuscator, logical_line, tab=""):
+def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
     commands = deobfuscator.get_commands(logical_line)
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        print(tab + normalized_comm)
+        if not child or args[0].verbose:
+            print(tab + normalized_comm)
         if len(deobfuscator.exec_cmd) > 0:
-            print(tab + "[CHILD CMD]")
+            # Gives the user context that a child command is running, but doesn't
+            # actually execute the code again, because that is being handled
+            # by the inline `cmd /c` command. The `goto` serves as a multi-line
+            # comment, since they aren't natively supported in batch.
+            if args[0].verbose:
+                print(tab + "# [RUNNING IN CHILD CMD]")
+                print(tab + "goto comment")
             for child_cmd in deobfuscator.exec_cmd:
                 child_deobfuscator = copy.deepcopy(deobfuscator)
                 child_deobfuscator.exec_cmd.clear()
-                interpret_logical_line(child_deobfuscator, child_cmd, tab=tab + "\t")
+                interpret_logical_line(child_deobfuscator, child_cmd, tab=tab + "\t", child=True)
             deobfuscator.exec_cmd.clear()
-            print(tab + "[END OF CHILD CMD]")
+            if args[0].verbose:
+                print(tab + ":comment")
+                print(tab + "# [END OF CHILD CMD]")
 
 
-def interpret_logical_line_str(deobfuscator, logical_line, tab=""):
+def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
     str = ""
     commands = deobfuscator.get_commands(logical_line)
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        str = str + tab + normalized_comm
+        if not child or args[0].verbose:
+            str += tab + normalized_comm
         if len(deobfuscator.exec_cmd) > 0:
-            str = str + tab + "[CHILD CMD]"
+            if args[0].verbose:
+                str += tab + "# [RUNNING IN CHILD CMD]"
+                str += tab + "goto comment"
             for child_cmd in deobfuscator.exec_cmd:
                 child_deobfuscator = copy.deepcopy(deobfuscator)
                 child_deobfuscator.exec_cmd.clear()
-                interpret_logical_line(child_deobfuscator, child_cmd, tab=tab + "\t")
+                interpret_logical_line_str(child_deobfuscator, child_cmd, tab=tab + "\t", child=True)
             deobfuscator.exec_cmd.clear()
-            str = str + tab + "[END OF CHILD CMD]"
+            if args[0].verbose:
+                str += tab + ":comment"
+                str += tab + "# [END OF CHILD CMD]"
     return str
 
 
@@ -1122,6 +1140,7 @@ def handle_bat_file(deobfuscator, fpath):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands")
     args = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()
