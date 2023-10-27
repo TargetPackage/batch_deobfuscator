@@ -31,3 +31,5 @@ $ pip3 install -e ".[dev]"
 ```shell
 $ python3 -m pytest
 ```
+
+Add `-v` for extra information, useful if tests are failing and you aren't sure why.
