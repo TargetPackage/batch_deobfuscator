@@ -10,6 +10,7 @@ import string
 import tempfile
 from collections import defaultdict
 from urllib.parse import urlparse
+from simpleeval import simple_eval
 
 # Allow args to be used across functions
 global cli_args
@@ -68,8 +69,8 @@ class BatchDeobfuscator:
         if os.name == "nt":
             for env_var, value in os.environ.items():
                 self.variables[env_var.lower()] = value
-        # fake it till you make it
         else:
+            # Use fake values for the variables so the code doesn't break
             self.variables = {
               "allusersprofile": "C:\\ProgramData",
               "appdata": "C:\\Users\\puncher\\AppData\\Roaming",
@@ -449,6 +450,13 @@ class BatchDeobfuscator:
             for char in QUOTED_CHARS:
                 var_name = var_name.replace(char, "")
             var_value = f"({var_value.strip(' ')})"
+            if cli_args[0].math:
+                # Convert the batch modulus operator to the Python one
+                math_value = var_value.replace("%%", "%")
+                # Attempt to evaluate the expression
+                math_eval = simple_eval(math_value[1:-1])
+                if math_eval is not None:
+                    var_value = str(math_eval)
         elif option == "p":
             last_quote_index = max(var_value.rfind("'"), var_value.rfind('"'))
             set_in = var_value.rfind("<")
@@ -494,8 +502,7 @@ class BatchDeobfuscator:
         try:
             split_cmd = shlex.split(cmd, posix=False)
         except ValueError:
-            # Probably a "No closing quotation"
-            # Usually generated from corrupted or non-batch files
+            # Probably a "No closing quotation", usually generated from corrupted or non-batch files
             return
         args, unknown = self.curl_parser.parse_known_args(split_cmd[1:])
 
@@ -1142,6 +1149,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
     parser.add_argument("-o", "--output", type=str, help="The path the deobfuscated batch file should be written to")
     parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands")
+    parser.add_argument("-m", "--math", action="store_true", help="Whether to attempt to execute mathematical operations in the batch file")
     cli_args = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()

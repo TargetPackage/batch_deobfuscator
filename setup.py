@@ -7,6 +7,9 @@ setup(
   author="@DissectMalware",
   url="https://github.com/DissectMalware/batch_deobfuscator/",
   packages=["batch_deobfuscator"],
+  install_requires=[
+    "simpleeval",
+  ],
   extras_require={
     "dev": [
       "pytest",
