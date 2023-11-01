@@ -3,6 +3,7 @@
 
 Original project by [DissectMalware](https://github.com/DissectMalware), additional modifications made by [gdesmar](https://github.com/gdesmar). We just expanded functionality and added additional commentary to the codebase to make the deobfuscation process easier to understand.
 
+**NOTE: This should ONLY be ran on a virtual machine in an isolated environment to minimize the risk of accidental damage to your system. The creators of this tool are not responsible for any damage caused by its usage.**
 
 ## Running the script
 To run the script:

@@ -731,11 +731,13 @@ class BatchDeobfuscator:
         if command == "set":
             # Interpreting set command
             var_name, var_value = self.interpret_set(normalized_comm[3:])
+            var_name = var_name.lower()
+
             if var_value == "":
-                if var_name.lower() in self.variables:
-                    del self.variables[var_name.lower()]
+                if var_name in self.variables:
+                    del self.variables[var_name]
             else:
-                self.variables[var_name.lower()] = var_value
+                self.variables[var_name] = var_value
             return
 
         if command.endswith("curl") or command.endswith("curl.exe"):
@@ -760,6 +762,7 @@ class BatchDeobfuscator:
         return argument == "%" or (argument.startswith("%~") and all(x in "fdpnxsatz" for x in argument[2:]))
 
 
+    # https://www.programming-books.io/essential/batch/-percent-tilde-f4263820c2db41e399c77259970464f1.html
     def percent_tilde(self, argument):
         if argument[:2] == "%":
             return "script.bat"
@@ -770,15 +773,20 @@ class BatchDeobfuscator:
             value += "--a-------- "
 
         if "f" in argument:
+            # Full path with drive letter
             path = "C:\\Users\\al\\Downloads\\script.bat"
         else:
             if "d" in argument:
+                # Drive letter
                 path += "C:"
             if "p" in argument:
+                # Path without drive letter, with trailing backslash
                 path += "\\Users\\al\\Downloads\\"
             if "n" in argument:
+                # Filename without extension
                 path += "script"
             if "x" in argument:
+                # File extension (with leading dot)
                 path += ".bat"
 
         if "s" in argument:
@@ -787,9 +795,11 @@ class BatchDeobfuscator:
                 path = "C:\\Users\\al\\Downloads\\script.bat"
 
         if "t" in argument:
+            # Date and time of last modification of the file
             value += "12/30/2022 11:41 AM "
 
         if "z" in argument:
+            # Size of the file in bytes
             if self.file_path:
                 try:
                     value += str(os.path.getsize(self.file_path))
