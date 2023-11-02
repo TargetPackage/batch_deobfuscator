@@ -123,7 +123,7 @@ class BatchDeobfuscator:
               "__compat_layer": "DetectorsMessageBoxErrors",
             }
 
-        # There are 211 lines coming out of curl --help, so I won't be parsing all the options
+        # There are 211 lines coming out of curl --help, so we won't parse all the options
         self.curl_parser = argparse.ArgumentParser()
         # Data could be had multiple time, but since we don't use it, we can ignore it
         self.curl_parser.add_argument("-d", "--data", dest="data", help="Data to send")
@@ -333,10 +333,15 @@ class BatchDeobfuscator:
         matches = re.finditer(str_substitution, variable, re.MULTILINE)
 
         value = ""
-        for matchNum, match in enumerate(matches):
+        for _, match in enumerate(matches):
             var_name = match.group("variable").lower()
             if var_name in self.variables:
                 value = self.variables[var_name]
+                if value[:2] == "%=":
+                    # This is a dynamic variable, we need to leave all references to it
+                    # untouched so it can be processed later during execution
+                    return f"%{var_name}%"
+
                 if match.group("index") is not None:
                     index = int(match.group("index"))
                     if index < 0 and -index >= len(value):
@@ -614,6 +619,7 @@ class BatchDeobfuscator:
 
 
     def interpret_copy(self, cmd):
+        # https://ss64.com/nt/copy.html
         split_cmd = []
         curr = ""
         q = ""
@@ -709,6 +715,7 @@ class BatchDeobfuscator:
             return
 
         if command == "start":
+            # https://ss64.com/nt/start.html
             start_re = (
               r"start(.exe)?"
               r"(\/min|\/max|\/wait|\/low|\/normal|\/abovenormal|\/belownormal|\/high|\/realtime|\/b|\/i|\/w|\s+)*"
@@ -722,6 +729,7 @@ class BatchDeobfuscator:
             return
 
         if command.endswith("cmd") or command.endswith("cmd.exe"):
+            # https://ss64.com/nt/cmd.html
             cmd_command = r"cmd(.exe)?\s*((\/A|\/U|\/Q|\/D)\s+|((\/E|\/F|\/V):(ON|OFF))\s*)*(\/c|\/r)\s*(?P<cmd>.*)"
             match = re.search(cmd_command, normalized_comm, re.IGNORECASE)
             if match is not None and match.group("cmd") is not None:
@@ -729,7 +737,7 @@ class BatchDeobfuscator:
             return
 
         if command == "set":
-            # Interpreting set command
+            # Interpreting `set` command
             var_name, var_value = self.interpret_set(normalized_comm[3:])
             var_name = var_name.lower()
 
@@ -814,7 +822,7 @@ class BatchDeobfuscator:
         return value if value else "script.bat"
 
 
-    def normalize_command(self, command):
+    def normalize_command(self, command, rerun=False):
         if line_is_comment(command):
             return command
         
@@ -883,12 +891,15 @@ class BatchDeobfuscator:
 
             elif state == "normal_var_start":
                 if char == "%" and normalized_com[-1] != char:
+                    # The variable is closed
                     normalized_com += char
-                    value = self.get_value(normalized_com[variable_start:])
-                    normalized_com = normalized_com[:variable_start]
+                    if not rerun:
+                        value = self.get_value(normalized_com[variable_start:])
+                        normalized_com = normalized_com[:variable_start]
+                        # Prevents "nested variable definition" for dynamic vars
+                        normalized_com += self.normalize_command(value, True)
                     if len(normalized_com) == 0:
                         traits["start_with_var"] = True
-                    normalized_com += self.normalize_command(value)
                     traits["var_used"] += 1
                     state = stack.pop()
                 elif char == "%":
@@ -897,16 +908,14 @@ class BatchDeobfuscator:
                     state = stack.pop()
                 elif char == "=" and normalized_com[-1] == "%":
                     # `%=` is used for undocumented dynamic variables, which cannot be used with `set`
-                    # due to the `=` character being used as a delimiter. It is most commonly seen in
-                    # `%=exitcodeAscii%` in conjunction with `set /a` to get the exit code of the last
-                    # command, usually ran by `cmd /c` for further obfuscation.
+                    # due to the `=` character being used as a delimiter. It is commonly seen in
+                    # `%=exitcodeAscii%` in conjunction with `set /a` to get the exit code of the
+                    # last command, usually ran by `cmd /c` for further obfuscation.
                     # More info: https://ss64.com/nt/syntax-variables.html
                     normalized_com += char
                     state = "inside_dynamic_var"
                 elif char == "^":
-                    # Do not escape in vars?
-                    # state = "escape"
-                    # stack.append("normal_var_start")
+                    # Don't escape in vars
                     normalized_com += char
                 elif char == "*" and len(normalized_com) == variable_start + 1:
                     # `%*` is a special variable that expands to all the parameters passed to the script,
@@ -948,6 +957,7 @@ class BatchDeobfuscator:
             
             elif state == "inside_dynamic_var":
                 if char == "%":
+                    # The dynamic variable is closed
                     normalized_com += char
                     state = stack.pop()
                 else:
@@ -1090,11 +1100,11 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
         if not child or cli_args[0].verbose:
             print(tab + normalized_comm)
         if len(deobfuscator.exec_cmd) > 0:
-            # Gives the user context that a child command is running, but doesn't
-            # actually execute the code again, because that is being handled
-            # by the inline `cmd /c` command. The `goto` serves as a multi-line
-            # comment, since they aren't natively supported in batch.
             if cli_args[0].verbose:
+                # Gives the user context that a child command is running, but doesn't
+                # actually execute the code again, because that is being handled
+                # by the inline `cmd /c` command. The `goto` serves as a multi-line
+                # comment, since they aren't natively supported in batch.
                 print(tab + "# [RUNNING IN CHILD CMD]")
                 print(tab + "goto comment")
             for child_cmd in deobfuscator.exec_cmd:
