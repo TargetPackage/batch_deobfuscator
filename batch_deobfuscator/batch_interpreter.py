@@ -57,10 +57,15 @@ def line_is_comment(line: str) -> bool:
     return False
 
 
+def variable_is_dynamic(variable: str) -> bool:
+    return variable[:2] == "%="
+
+
 class BatchDeobfuscator:
     def __init__(self, complex_one_liner_threshold=4):
         self.file_path = None
         self.variables = {}
+        self.exit_code = 0
         self.exec_cmd = []
         self.exec_ps1 = []
         self.traits = defaultdict(list)
@@ -170,7 +175,6 @@ class BatchDeobfuscator:
         counter = 0
         start_command = 0
         for char in statement:
-            # print(f"C:{char}, S:{state}")
             if state == "init":
                 if char == '"':
                     # Quote is on
@@ -286,11 +290,11 @@ class BatchDeobfuscator:
         if line_is_comment(logical_line):
             yield logical_line.strip()
             return
+        
         state = "init"
         counter = 0
         start_command = 0
         for char in logical_line:
-            # print(f"C:{char}, S:{state}")
             if state == "init":
                 if char == '"':
                     # Quote is on
@@ -337,9 +341,9 @@ class BatchDeobfuscator:
             var_name = match.group("variable").lower()
             if var_name in self.variables:
                 value = self.variables[var_name]
-                if value[:2] == "%=":
-                    # This is a dynamic variable, we need to leave all references to it
-                    # untouched so it can be processed later during execution
+                if variable_is_dynamic(value):
+                    # We need to leave all references to it untouched so it can be
+                    # processed later during execution
                     return f"%{var_name}%"
 
                 if match.group("index") is not None:
@@ -360,7 +364,7 @@ class BatchDeobfuscator:
                     s1 = match.group("s1")
                     s2 = match.group("s2")
                     if s1.startswith("*") and s1[1:].lower() in value.lower():
-                        value = f"{s2}{value[value.lower().index(s1[1:].lower())+len(s1)-1:]}"
+                        value = f"{s2}{value[value.lower().index(s1[1:].lower()) + len(s1)-1:]}"
                     else:
                         pattern = re.compile(re.escape(s1), re.IGNORECASE)
                         value = pattern.sub(re.escape(s2), value)
@@ -383,7 +387,6 @@ class BatchDeobfuscator:
         stop_parsing = len(cmd)
 
         for idx, char in enumerate(cmd):
-            # print(f"{idx}. C: {char} S: {state}, {var_value}")
             if idx >= stop_parsing:
                 break
             if state == "init":
@@ -509,7 +512,7 @@ class BatchDeobfuscator:
         except ValueError:
             # Probably a "No closing quotation", usually generated from corrupted or non-batch files
             return
-        args, unknown = self.curl_parser.parse_known_args(split_cmd[1:])
+        args, _ = self.curl_parser.parse_known_args(split_cmd[1:])
 
         url = args.url
         if url[0] == url[-1] in ["'", '"']:
@@ -693,11 +696,11 @@ class BatchDeobfuscator:
 
         # Some commands like `set` cannot be split by double quotes, but `cmd` and `powershell` can.
         if '""' in command:
-            ori_cmd_len = len(command)
+            original_cmd_len = len(command)
             command = command.replace('""', "")
-            normalized_comm = normalized_comm[:ori_cmd_len].replace('""', "") + normalized_comm[ori_cmd_len:]
+            normalized_comm = normalized_comm[:original_cmd_len].replace('""', "") + normalized_comm[original_cmd_len:]
             normalized_comm_lower = (
-              normalized_comm_lower[:ori_cmd_len].replace('""', "") + normalized_comm_lower[ori_cmd_len:]
+              normalized_comm_lower[:original_cmd_len].replace('""', "") + normalized_comm_lower[original_cmd_len:]
             )
 
         if command in self.modified_filesystem:
@@ -733,7 +736,10 @@ class BatchDeobfuscator:
             cmd_command = r"cmd(.exe)?\s*((\/A|\/U|\/Q|\/D)\s+|((\/E|\/F|\/V):(ON|OFF))\s*)*(\/c|\/r)\s*(?P<cmd>.*)"
             match = re.search(cmd_command, normalized_comm, re.IGNORECASE)
             if match is not None and match.group("cmd") is not None:
-                self.exec_cmd.append(match.group("cmd").strip('"'))
+                command = match.group("cmd").strip('"')
+                self.exec_cmd.append(command)
+                if cli_args[0].exitcodes and command.lower().startswith("exit"):
+                    self.exit_code = command.lstrip("exit").strip()
             return
 
         if command == "set":
@@ -744,6 +750,15 @@ class BatchDeobfuscator:
             if var_value == "":
                 if var_name in self.variables:
                     del self.variables[var_name]
+            elif variable_is_dynamic(var_value) and cli_args[0].exitcodes:
+                # Attempt to determine exit codes if the user specified it
+                dynamic_var = var_value[2:-1].lower()
+                if dynamic_var == "exitcodeascii" and self.exit_code.isdigit():
+                    self.variables[var_name] = chr(int(self.exit_code))
+                elif dynamic_var == "exitcode":
+                    self.variables[var_name] = hex(int(self.exit_code))
+                else:
+                    self.variables[var_name] = var_value
             else:
                 self.variables[var_name] = var_value
             return
@@ -836,7 +851,6 @@ class BatchDeobfuscator:
         stack = []
         traits = {"start_with_var": False, "var_used": 0}
         for char in command:
-            # print(f"C:{char} S:{state} N:{normalized_com}")
             if state == "init":
                 if char == '"':
                     # Quote is on
@@ -920,16 +934,16 @@ class BatchDeobfuscator:
                 elif char == "*" and len(normalized_com) == variable_start + 1:
                     # `%*` is a special variable that expands to all the parameters passed to the script,
                     # which is usually used to forward the parameters to another script.
+
+                    # Assume no parameters were passed
                     normalized_com = normalized_com[:variable_start]
                     state = stack.pop()
                 elif char.isdigit() and self.valid_percent_tilde(normalized_com[variable_start:]):
-                    # https://www.programming-books.io/essential/batch/-percent-tilde-f4263820c2db41e399c77259970464f1.html
                     # TODO: %~$PATH:0 is not handled.
-                    # normalized_com += char # is this really needed?
                     if char == "0":
                         value = self.percent_tilde(normalized_com[variable_start:])
                     else:
-                        # Assume no parameter were passed
+                        # Assume no parameters were passed
                         value = ""
                     normalized_com = normalized_com[:variable_start]
                     normalized_com += value
@@ -1026,7 +1040,7 @@ class BatchDeobfuscator:
                     for child_cmd in self.exec_cmd:
                         child_deobfuscator = copy.deepcopy(self)
                         child_deobfuscator.exec_cmd.clear()
-                        child_fd, child_path = tempfile.mkstemp(suffix=".bat", prefix="child_", dir=working_directory)
+                        _, child_path = tempfile.mkstemp(suffix=".bat", prefix="child_", dir=working_directory)
                         with open(child_path, "w") as child_f:
                             child_deobfuscator.analyze_logical_line(
                               child_cmd, working_directory, child_f, extracted_files
@@ -1098,7 +1112,8 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
         if not child or cli_args[0].verbose:
-            print(tab + normalized_comm)
+            if not line_is_comment(normalized_comm) or cli_args[0].verbose:
+                print(tab + normalized_comm)
         if len(deobfuscator.exec_cmd) > 0:
             if cli_args[0].verbose:
                 # Gives the user context that a child command is running, but doesn't
@@ -1124,7 +1139,8 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
         if not child or cli_args[0].verbose:
-            str += tab + normalized_comm
+            if not line_is_comment(normalized_comm) or cli_args[0].verbose:
+                str += tab + normalized_comm
         if len(deobfuscator.exec_cmd) > 0:
             if cli_args[0].verbose:
                 str += "\n" + tab + "# [RUNNING IN CHILD CMD]" + "\n"
@@ -1168,8 +1184,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
     parser.add_argument("-o", "--output", type=str, help="The path the deobfuscated batch file should be written to")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands and comments")
     parser.add_argument("-m", "--math", action="store_true", help="Whether to attempt to execute mathematical operations in the batch file")
+    parser.add_argument("-e", "--exitcodes", action="store_true", help="Whether to attempt to store command exit codes and replace `%=exitcodeAscii%` with the appropriate value")
     cli_args = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()
