@@ -1183,10 +1183,10 @@ def handle_bat_file(deobfuscator, fpath):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", type=str, help="The path of obfuscated batch file")
-    parser.add_argument("-o", "--output", type=str, help="The path the deobfuscated batch file should be written to")
+    parser.add_argument("-o", "--output", type=str, help="The path the deobfuscated batch file should be written to (default: stdout)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands and comments")
     parser.add_argument("-m", "--math", action="store_true", help="Whether to attempt to execute mathematical operations in the batch file")
-    parser.add_argument("-e", "--exitcodes", action="store_true", help="Whether to attempt to store command exit codes and replace `%=exitcodeAscii%` with the appropriate value")
+    parser.add_argument("-e", "--exitcodes", action="store_true", help="Whether to attempt to store command exit codes and replace `%%=exitcodeAscii%%` with the appropriate value")
     cli_args = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()
