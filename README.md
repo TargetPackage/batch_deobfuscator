@@ -53,7 +53,3 @@ $ python3 -m pytest
 ```
 
 Add `-v` for extra information, useful if tests are failing and you aren't sure why.
-
-## TODOs
-- [ ] Fix the issue mentioned [here](https://stackoverflow.com/a/77126882/6456163); prevent expanding on Windows variables automatically?
-- [ ] Combine with functionality of [this](https://github.com/danielbohannon/Invoke-DOSfuscation)
