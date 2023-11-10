@@ -11,10 +11,19 @@ import tempfile
 from collections import defaultdict
 from urllib.parse import urlparse
 from simpleeval import simple_eval
+from types import SimpleNamespace
 
 # Allow args to be used across functions
 global cli_args
-cli_args = ()
+default_arg_vals = {
+  # Allows tests to run without having to pass in args
+  "file": None,
+  "output": None,
+  "verbose": False,
+  "exitcodes": False,
+  "math": False,
+}
+cli_args = SimpleNamespace(**default_arg_vals)
 
 QUOTED_CHARS = ["|", ">", "<", '"', "^", "&"]
 
@@ -458,7 +467,7 @@ class BatchDeobfuscator:
             for char in QUOTED_CHARS:
                 var_name = var_name.replace(char, "")
             var_value = f"({var_value.strip(' ')})"
-            if cli_args[0].math:
+            if cli_args.math:
                 # Convert the batch modulus operator to the Python one
                 math_value = var_value.replace("%%", "%")
                 # Attempt to evaluate the expression
@@ -738,7 +747,7 @@ class BatchDeobfuscator:
             if match is not None and match.group("cmd") is not None:
                 command = match.group("cmd").strip('"')
                 self.exec_cmd.append(command)
-                if cli_args[0].exitcodes and command.lower().startswith("exit"):
+                if cli_args.exitcodes and command.lower().startswith("exit"):
                     self.exit_code = command.lstrip("exit").strip()
             return
 
@@ -750,7 +759,7 @@ class BatchDeobfuscator:
             if var_value == "":
                 if var_name in self.variables:
                     del self.variables[var_name]
-            elif variable_is_dynamic(var_value) and cli_args[0].exitcodes:
+            elif variable_is_dynamic(var_value) and cli_args.exitcodes:
                 # Attempt to determine exit codes if the user specified it
                 dynamic_var = var_value[2:-1].lower()
                 if dynamic_var == "exitcodeascii" and self.exit_code.isdigit():
@@ -1111,11 +1120,11 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        if not child or cli_args[0].verbose:
-            if not line_is_comment(normalized_comm) or cli_args[0].verbose:
+        if not child or cli_args.verbose:
+            if not line_is_comment(normalized_comm) or cli_args.verbose:
                 print(tab + normalized_comm)
         if len(deobfuscator.exec_cmd) > 0:
-            if cli_args[0].verbose:
+            if cli_args.verbose:
                 # Gives the user context that a child command is running, but doesn't
                 # actually execute the code again, because that is being handled
                 # by the inline `cmd /c` command. The `goto` serves as a multi-line
@@ -1127,7 +1136,7 @@ def interpret_logical_line(deobfuscator, logical_line, tab="", child=False):
                 child_deobfuscator.exec_cmd.clear()
                 interpret_logical_line(child_deobfuscator, child_cmd, tab=tab + "\t", child=True)
             deobfuscator.exec_cmd.clear()
-            if cli_args[0].verbose:
+            if cli_args.verbose:
                 print(tab + ":comment")
                 print(tab + "# [END OF CHILD CMD]")
 
@@ -1138,11 +1147,11 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
     for command in commands:
         normalized_comm = deobfuscator.normalize_command(command)
         deobfuscator.interpret_command(normalized_comm)
-        if not child or cli_args[0].verbose:
-            if not line_is_comment(normalized_comm) or cli_args[0].verbose:
+        if not child or cli_args.verbose:
+            if not line_is_comment(normalized_comm) or cli_args.verbose:
                 str += tab + normalized_comm
         if len(deobfuscator.exec_cmd) > 0:
-            if cli_args[0].verbose:
+            if cli_args.verbose:
                 str += "\n" + tab + "# [RUNNING IN CHILD CMD]" + "\n"
                 str += tab + "goto comment" + "\n"
             for child_cmd in deobfuscator.exec_cmd:
@@ -1150,7 +1159,7 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
                 child_deobfuscator.exec_cmd.clear()
                 str += interpret_logical_line_str(child_deobfuscator, child_cmd, tab=tab + "\t", child=True) + "\n"
             deobfuscator.exec_cmd.clear()
-            if cli_args[0].verbose:
+            if cli_args.verbose:
                 str += tab + ":comment" + "\n"
                 str += tab + "# [END OF CHILD CMD]"
     return str
@@ -1187,21 +1196,21 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="store_true", help="Whether to include additional information in the output, such as child commands and comments")
     parser.add_argument("-m", "--math", action="store_true", help="Whether to attempt to execute mathematical operations in the batch file")
     parser.add_argument("-e", "--exitcodes", action="store_true", help="Whether to attempt to store command exit codes and replace `%%=exitcodeAscii%%` with the appropriate value")
-    cli_args = parser.parse_known_args()
+    cli_args, _ = parser.parse_known_args()
 
     deobfuscator = BatchDeobfuscator()
 
-    if cli_args[0].file is not None:
-        file_path = cli_args[0].file
+    if cli_args.file is not None:
+        file_path = cli_args.file
         output = ""
-        for logical_line in deobfuscator.read_logical_line(cli_args[0].file):
-            if cli_args[0].output is not None:
+        for logical_line in deobfuscator.read_logical_line(cli_args.file):
+            if cli_args.output is not None:
                 output += interpret_logical_line_str(deobfuscator, logical_line) + "\n"
             else:
                 interpret_logical_line(deobfuscator, logical_line)
 
-        if cli_args[0].output is not None:
-            with open(cli_args[0].output, "w") as f:
+        if cli_args.output is not None:
+            with open(cli_args.output, "w") as f:
                 f.write(output)
 
     else:
