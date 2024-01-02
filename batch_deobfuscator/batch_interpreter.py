@@ -307,7 +307,6 @@ class BatchDeobfuscator:
                 yield part
 
     def get_value(self, variable):
-
         str_substitution = (
             r"([%!])(?P<variable>[\"^|!\w#$'()*+,-.?@\[\]`{}~\s+]+)"
             r"("
@@ -623,6 +622,46 @@ class BatchDeobfuscator:
             self.traits["windows-util-manipulation"].append((cmd, {"src": src, "dst": dst}))
         self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
+    def interpret_net(self, cmd):
+        if cmd[:7].lower() != "net use":
+            # Started with "net" but not "net use", strange but not what we're interested into
+            return
+        r"""
+        net use
+            [{<DeviceName> | *}]
+            [\\<ComputerName>\<ShareName>[\<volume>]]
+            [{<Password> | *}]]
+            [/user:[<DomainName>\]<UserName] >
+            [/user:[<DottedDomainName>\]<UserName>]
+            [/user: [<UserName@DottedDomainName>]
+            [/savecred]
+            [/smartcard]
+            [{/delete | /persistent:{yes | no}}]
+        net use [<DeviceName> [/home[{<Password> | *}] [/delete:{yes | no}]]
+        net use [/persistent:{yes | no}]
+        """
+        split_cmd = cmd.split()
+        if len(split_cmd) <= 2 or split_cmd[2] == "*" or split_cmd[2][:2].lower() == "/p":
+            # Maybe a "net use * /d /y" or a "net use /persistent:yes"
+            return
+
+        info = {"devicename": split_cmd[2], "server": split_cmd[3]}
+        for param in split_cmd[4:]:
+            if param.startswith("/sa"):
+                continue
+            elif param.startswith("/sm"):
+                continue
+            elif param.startswith("/d"):
+                continue
+            elif param.startswith("/p"):
+                continue
+            elif param.startswith("/u"):
+                info["user"] = param.split(":", 1)[1]
+                continue
+            info["password"] = param
+
+        self.traits["net-use"].append((cmd, info))
+
     def interpret_command(self, normalized_comm):
         if line_is_comment(normalized_comm):
             return
@@ -723,6 +762,9 @@ class BatchDeobfuscator:
 
         if command == "copy":
             self.interpret_copy(normalized_comm)
+
+        if command == "net":
+            self.interpret_net(normalized_comm)
 
     def valid_percent_tilde(self, argument):
         return argument == "%" or (argument.startswith("%~") and all(x in "fdpnxsatz" for x in argument[2:]))
@@ -1063,7 +1105,6 @@ if __name__ == "__main__":
     deobfuscator = BatchDeobfuscator()
 
     if args[0].file is not None:
-
         file_path = args[0].file
 
         for logical_line in deobfuscator.read_logical_line(args[0].file):
