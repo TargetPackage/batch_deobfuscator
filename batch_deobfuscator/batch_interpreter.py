@@ -623,8 +623,8 @@ class BatchDeobfuscator:
         self.modified_filesystem[dst.lower()] = {"type": "file", "src": src}
 
     def interpret_net(self, cmd):
-        if cmd[:7].lower() != "net use":
-            # Started with "net" but not "net use", strange but not what we're interested into
+        if cmd[:7].lower() != "net use" or cmd[:8].lower() == "net user":
+            # Started with "net" but not "net use", not what we're interested into
             return
         r"""
         net use
