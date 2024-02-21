@@ -500,6 +500,9 @@ class BatchDeobfuscator:
         # Assume the first element is the call to powershell
         cmd = normalized_comm.split()[1:]
 
+        if len(cmd) == 0:
+            return
+
         if cmd[0].lower() in ["invoke-webrequest", "iwr"]:
             # Parse this more similarly to curl than proper powershell
             args, unknown = self.powershell_invoke_webrequest_parser.parse_known_args(cmd[1:])

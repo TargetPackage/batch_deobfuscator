@@ -36,6 +36,7 @@ from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
             "powershell -Command \"& {get-process onedrive | add-member -Name Elevated -MemberType ScriptProperty -Value {if ($this.Name -in @('Idle','System')) {$null} else {-not $this.Path -and -not $this.Handle} } -PassThru | Format-Table Name,Elevated}\" > \"%WORKINGDIRONEDRIVE%\\OneDriveElevated.txt\"",
             b"& {get-process onedrive | add-member -Name Elevated -MemberType ScriptProperty -Value {if ($this.Name -in @('Idle','System')) {$null} else {-not $this.Path -and -not $this.Handle} } -PassThru | Format-Table Name,Elevated}",
         ),
+        ("powershell", None),
     ],
 )
 def test_extract_powershell(statement, extracted_ps1):
