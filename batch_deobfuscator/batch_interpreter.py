@@ -17,6 +17,7 @@ QUOTED_CHARS = ["|", ">", "<", '"', "^", "&"]
 ENC_RE = rb"(?i)(?:-|/)e(?:c|n(?:c(?:o(?:d(?:e(?:d(?:c(?:o(?:m(?:m(?:a(?:nd?)?)?)?)?)?)?)?)?)?)?)?)?$"
 PWR_CMD_RE = rb"(?i)(?:-|/)c(?:o(?:m(?:m(?:a(?:nd?)?)?)?)?)?$"
 PWR_FILE_RE = rb"(?i)(?:-|/)f(?:i(?:l(?:e?)?)?)?$"
+REDIRECTORS_RE = r"\s*(<|\d?>>?)\s*(\"(?:[^\"]|\"\"|\^\")+\"|[^\s><]+)"
 
 # Gathered from https://gist.github.com/api0cradle/8cdc53e2a80de079709d28a2d96458c2
 RARE_LOLBAS = [
@@ -380,6 +381,8 @@ class BatchDeobfuscator:
                 elif char == "^":
                     old_state = state
                     state = "escape"
+                elif char == "=":
+                    state = "value"
                 else:
                     state = "var"
                     var_name += char
@@ -436,31 +439,37 @@ class BatchDeobfuscator:
             var_value = f"({var_value.strip(' ')})"
         elif option == "p":
             last_quote_index = max(var_value.rfind("'"), var_value.rfind('"'))
-            set_in = var_value.rfind("<")
-            set_out = var_value.rfind(">")
+            file_redirect = None
+            file_input = None
+            redirectors_string = var_value[last_quote_index + 1 :].strip()
+            if redirectors_string:
+                while redirector := re.match(REDIRECTORS_RE, redirectors_string):
+                    if redirector.group(1) in ["1>", ">"]:
+                        file_redirect = redirector.group(2).strip()
+                        file_redirect_append = False
+                    elif redirector.group(1) in ["1>>", ">>"]:
+                        file_redirect = redirector.group(2).strip()
+                        file_redirect_append = True
+                    elif redirector.group(1) == "<":
+                        file_input = redirector.group(2).strip()
+                    redirectors_string = redirectors_string[redirector.end() :]
 
-            if set_out != -1 and set_out > last_quote_index:
-                file_redirect = var_value[set_out:].lstrip(">").strip()
-                content = var_value[:set_out].strip()
-                if set_in != -1 and set_in < set_out:
-                    content = var_value[:set_in].strip()
-                elif set_in > set_out:
-                    file_redirect = file_redirect[: set_in - set_out - 1]
-                if content[0] == content[-1] in ["'", '"']:
-                    content = content[1:-1].strip()
-                file_redirect = file_redirect.strip()
-                self.modified_filesystem[file_redirect.lower()] = {"type": "content", "content": content}
-                self.traits["setp-file-redirection"].append((cmd, file_redirect))
+            if file_redirect:
+                content = var_value[: last_quote_index + 1].strip()
+                if content and file_redirect != "nul":
+                    if content[0] == content[-1] in ["'", '"']:
+                        content = content[1:-1]
+                    if file_redirect_append:
+                        if file_redirect.lower() in self.modified_filesystem:
+                            content = f"{self.modified_filesystem[file_redirect.lower()]['content']}{content}"
+                    self.modified_filesystem[file_redirect.lower()] = {"type": "content", "content": content}
+                    self.traits["setp-file-redirection"].append((f"set{cmd}", file_redirect))
 
-            if set_in == -1 or set_in < last_quote_index:
+            if file_input is None:
                 var_value = "__input__"
             else:
                 # We can recover the value right away
-                actual_value = var_value[set_in:].lstrip("<")
-                if set_out > set_in:
-                    actual_value = actual_value[: set_out - set_in - 1]
-                actual_value = actual_value.strip()
-                if actual_value == "nul":
+                if file_input.strip() == "nul":
                     var_value = ""
                 else:
                     # We could get a value from the redirection, but for the moment we'll leave it generic

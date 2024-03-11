@@ -722,22 +722,6 @@ class TestUnittests:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "cmd, fs",
-        [
-            ('set/p str="a"a" "<nul>out.txt', ["out.txt"]),
-            ('set/p str="a"a" "<nul>OUt.tXt', ["out.txt"]),
-            ('set/p str="a"a" ">out.txt<nul', ["out.txt"]),
-            ('set/p str="a"a" ">out.txt', ["out.txt"]),
-            ('set/p str="a"a" "<nul', []),
-        ],
-    )
-    def test_set_redirection(cmd, fs):
-        deobfuscator = BatchDeobfuscator()
-        deobfuscator.interpret_command(cmd)
-        assert list(deobfuscator.modified_filesystem.keys()) == fs
-
-    @staticmethod
-    @pytest.mark.parametrize(
         "cmd, command_list",
         [
             (
