@@ -588,8 +588,13 @@ class BatchDeobfuscator:
 
     def interpret_rundll32(self, cmd):
         # The command is supposed to be split on "," but we're getting rid of them earlier.
-        # If we every fix the loss of commas, we need to fix this split.
+        # If we ever fix the loss of commas, we need to fix this split.
         split_cmd = cmd.split(" ")
+
+        if len(split_cmd) == 1:
+            # Rundll call without a dll, probably from a corrupted file
+            return
+
         if split_cmd[1].lower() in self.modified_filesystem:
             rundll_struct = {}
             if self.modified_filesystem[split_cmd[1].lower()]["type"] == "download":
