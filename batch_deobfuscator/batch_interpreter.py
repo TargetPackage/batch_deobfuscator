@@ -657,20 +657,40 @@ class BatchDeobfuscator:
             # Maybe a "net use * /d /y" or a "net use /persistent:yes"
             return
 
-        info = {"devicename": split_cmd[2], "server": split_cmd[3]}
-        for param in split_cmd[4:]:
-            if param.startswith("/sa"):
+        info = {"options": []}
+        extra_params = []
+        for param in split_cmd[2:]:
+            param_lowercase = param.lower()
+            if param_lowercase.startswith("/sa"):
+                info["options"].append("savecred")
                 continue
-            elif param.startswith("/sm"):
+            elif param_lowercase.startswith("/sm"):
+                info["options"].append("smartcard")
                 continue
-            elif param.startswith("/d"):
+            elif param_lowercase.startswith("/d"):
+                info["options"].append("delete")
                 continue
-            elif param.startswith("/p"):
+            elif param_lowercase.startswith("/p"):
+                info["options"].append("persistent")
                 continue
-            elif param.startswith("/u"):
+            elif param_lowercase.startswith("/u"):
                 info["user"] = param.split(":", 1)[1]
                 continue
-            info["password"] = param
+
+            extra_params.append(param)
+
+        if extra_params[0] == "*" or re.match(r"\w:$", extra_params[0]):
+            info["devicename"] = extra_params.pop(0)
+        if extra_params:
+            info["server"] = extra_params.pop(0)
+        if extra_params:
+            info["password"] = extra_params.pop(0)
+
+        if extra_params:
+            raise Exception(f"Too many parameters in net use: '{cmd}'")
+
+        if not info["options"]:
+            info.pop("options")
 
         self.traits["net-use"].append((cmd, info))
 
