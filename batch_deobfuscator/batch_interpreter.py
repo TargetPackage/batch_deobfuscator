@@ -684,6 +684,13 @@ class BatchDeobfuscator:
 
             extra_params.append(param)
 
+        if not extra_params:
+            # Probably something like
+            # net use %UNKNOWN_VAR% /delete
+            # Which gets resolved to
+            # net use  /delete
+            return
+
         if extra_params[0] == "*" or re.match(r"\w:$", extra_params[0]):
             info["devicename"] = extra_params.pop(0)
         if extra_params:

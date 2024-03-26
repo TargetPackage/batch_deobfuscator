@@ -88,3 +88,14 @@ def test_net_use_delete_with_server():
             "options": ["delete"],
         },
     )
+
+
+def test_net_use_missing_var():
+    # Probably something like
+    # net use %UNKNOWN_VAR% /delete
+    # Which gets resolved to
+    # net use  /delete
+    deobfuscator = BatchDeobfuscator()
+    cmd = r"net use  /delete"
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 0
