@@ -1,3 +1,5 @@
+import tempfile
+
 from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
 
 
@@ -73,6 +75,18 @@ def test_net_use_delete():
         },
     )
 
+    cmd = r"NET USE U: /DELETE /y"
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 1
+    assert len(deobfuscator.traits["net-use"]) == 2
+    assert deobfuscator.traits["net-use"][1] == (
+        cmd,
+        {
+            "devicename": "U:",
+            "options": ["delete", "auto-accept"],
+        },
+    )
+
 
 def test_net_use_delete_with_server():
     deobfuscator = BatchDeobfuscator()
@@ -99,3 +113,51 @@ def test_net_use_missing_var():
     cmd = r"net use  /delete"
     deobfuscator.interpret_command(cmd)
     assert len(deobfuscator.traits) == 0
+
+
+def test_net_use_redirect():
+    deobfuscator = BatchDeobfuscator()
+    cmd = r"NET USE U: \\server\files >> output.log"
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 1
+    assert len(deobfuscator.traits["net-use"]) == 1
+    assert deobfuscator.traits["net-use"][0] == (
+        cmd,
+        {
+            "devicename": "U:",
+            "server": r"\\server\files",
+        },
+    )
+
+
+def test_net_use_script():
+    deobfuscator = BatchDeobfuscator()
+    script = rb"""
+net use w: /delete >nul 2>nul
+if not exist w: (
+	net use w: \\server\files /Persistent:NO >nul 2>nul
+	)
+"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with tempfile.NamedTemporaryFile(dir=temp_dir) as tf:
+            tf.write(script)
+            tf.flush()
+            deobfuscator.analyze(tf.name, temp_dir)
+
+    assert "net-use" in deobfuscator.traits
+    assert len(deobfuscator.traits["net-use"]) == 2
+    assert deobfuscator.traits["net-use"][0] == (
+        r"net use w: /delete >nul 2>nul",
+        {
+            "devicename": "w:",
+            "options": ["delete"],
+        },
+    )
+    assert deobfuscator.traits["net-use"][1] == (
+        r"net use w: \\server\files /Persistent:NO >nul 2>nul",
+        {
+            "devicename": "w:",
+            "server": r"\\server\files",
+            "options": ["not-persistent"],
+        },
+    )

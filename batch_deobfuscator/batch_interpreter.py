@@ -665,6 +665,10 @@ class BatchDeobfuscator:
         info = {"options": []}
         extra_params = []
         for param in split_cmd[2:]:
+            if any(param.startswith(x) for x in [">", ">>", "1>", "1>>", "2>", "2>>"]):
+                # We reached the redirection part of the command
+                break
+
             param_lowercase = param.lower()
             if param_lowercase.startswith("/sa"):
                 info["options"].append("savecred")
@@ -673,13 +677,26 @@ class BatchDeobfuscator:
                 info["options"].append("smartcard")
                 continue
             elif param_lowercase.startswith("/d"):
-                info["options"].append("delete")
+                if ":" in param_lowercase and param_lowercase.split(":", 1)[1].startswith("n"):
+                    info["options"].append("not-delete")
+                else:
+                    info["options"].append("delete")
                 continue
             elif param_lowercase.startswith("/p"):
-                info["options"].append("persistent")
+                if ":" in param_lowercase and param_lowercase.split(":", 1)[1].startswith("n"):
+                    info["options"].append("not-persistent")
+                else:
+                    info["options"].append("persistent")
                 continue
             elif param_lowercase.startswith("/u"):
                 info["user"] = param.split(":", 1)[1]
+                continue
+            # /y and /n looks to be undocumented confirmation silent responses
+            elif param_lowercase.startswith("/y"):
+                info["options"].append("auto-accept")
+                continue
+            elif param_lowercase.startswith("/n"):
+                info["options"].append("auto-decline")
                 continue
 
             extra_params.append(param)
