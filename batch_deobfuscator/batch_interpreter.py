@@ -522,6 +522,12 @@ class BatchDeobfuscator:
 
         for idx, part in enumerate(cmd):
             if re.match(ENC_RE, part.encode()):
+                if len(cmd) == idx + 1:
+                    # We do not have more arguments
+                    # This my be caused by a script that does
+                    # echo cHdk | powershell -Encoded
+                    break
+
                 if cmd[idx + 1][0] in ["'", '"']:
                     last_part = idx + 1
                     for i in range(last_part, len(cmd)):

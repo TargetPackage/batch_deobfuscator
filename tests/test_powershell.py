@@ -1,3 +1,5 @@
+import tempfile
+
 import pytest
 
 from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
@@ -37,6 +39,8 @@ from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
             b"& {get-process onedrive | add-member -Name Elevated -MemberType ScriptProperty -Value {if ($this.Name -in @('Idle','System')) {$null} else {-not $this.Path -and -not $this.Handle} } -PassThru | Format-Table Name,Elevated}",
         ),
         ("powershell", None),
+        # echo cHdk | powershell -Encoded
+        ("powershell -Encoded", None),
     ],
 )
 def test_extract_powershell(statement, extracted_ps1):
