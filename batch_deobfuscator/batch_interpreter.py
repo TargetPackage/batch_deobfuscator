@@ -1032,7 +1032,12 @@ class BatchDeobfuscator:
     def analyze_logical_line(self, logical_line, working_directory, f, extracted_files):
         commands = self.get_commands(logical_line)
         for command in commands:
-            normalized_comm = self.normalize_command(command)
+            try:
+                normalized_comm = self.normalize_command(command)
+            except RecursionError:
+                # If a variable contains itself, we will recurse infinitly to expand it
+                normalized_comm = command
+
             if len(list(self.get_commands(normalized_comm))) > 1:
                 self.traits["command-grouping"].append({"Command": command, "Normalized": normalized_comm})
                 self.analyze_logical_line(normalized_comm, working_directory, f, extracted_files)
