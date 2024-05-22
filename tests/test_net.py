@@ -130,6 +130,22 @@ def test_net_use_redirect():
     )
 
 
+def test_net_use_space():
+    deobfuscator = BatchDeobfuscator()
+    cmd = r'net use g: "\\server.local\some\path\to\a nice folder" /user:domain\username'
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 1
+    assert len(deobfuscator.traits["net-use"]) == 1
+    assert deobfuscator.traits["net-use"][0] == (
+        cmd,
+        {
+            "devicename": "g:",
+            "server": r"\\server.local\some\path\to\a nice folder",
+            "user": r"domain\username",
+        },
+    )
+
+
 def test_net_use_script():
     deobfuscator = BatchDeobfuscator()
     script = rb"""

@@ -670,10 +670,13 @@ class BatchDeobfuscator:
 
         info = {"options": []}
         extra_params = []
-        for param in split_cmd[2:]:
+        for param in shlex.split(cmd, posix=False)[2:]:
             if any(param.startswith(x) for x in [">", ">>", "1>", "1>>", "2>", "2>>"]):
                 # We reached the redirection part of the command
                 break
+
+            if param[0] == param[-1] and param[0] in ["'", '"']:
+                param = param[1:-1]
 
             param_lowercase = param.lower()
             if param_lowercase.startswith("/sa"):
