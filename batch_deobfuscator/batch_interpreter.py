@@ -119,7 +119,7 @@ class BatchDeobfuscator:
                 "__compat_layer": "DetectorsMessageBoxErrors",
             }
 
-        # There are 211 lines coming out of curl --help, so I won't be parsing all the options
+        # There are 211 lines coming out of curl --help, so we won't parse all the options
         self.curl_parser = argparse.ArgumentParser()
         # Data could be had multiple time, but since we don't use it, we can ignore it
         self.curl_parser.add_argument("-d", "--data", dest="data", help="Data to send")
@@ -165,7 +165,7 @@ class BatchDeobfuscator:
         start_command = 0
         for char in statement:
             # print(f"C:{char}, S:{state}")
-            if state == "init":  # init state
+            if state == "init":
                 if char == '"':  # quote is on
                     state = "str_s"
                 elif char == "^":
@@ -280,7 +280,7 @@ class BatchDeobfuscator:
         start_command = 0
         for char in logical_line:
             # print(f"C:{char}, S:{state}")
-            if state == "init":  # init state
+            if state == "init":
                 if char == '"':  # quote is on
                     state = "str_s"
                 elif char == "^":
@@ -302,7 +302,8 @@ class BatchDeobfuscator:
 
             counter += 1
 
-        last_com = logical_line[start_command:].strip()
+        # Remove leading spaces/tabs and trailing newlines
+        last_com = logical_line[start_command:].lstrip().rstrip("\r\n")
         if last_com != "":
             for part in self.get_commands_special_statement(last_com):
                 yield part
@@ -319,8 +320,7 @@ class BatchDeobfuscator:
         matches = re.finditer(str_substitution, variable, re.MULTILINE)
 
         value = ""
-
-        for matchNum, match in enumerate(matches):
+        for match in matches:
             var_name = match.group("variable").lower()
             if var_name in self.variables:
                 value = self.variables[var_name]
@@ -736,10 +736,10 @@ class BatchDeobfuscator:
         if line_is_comment(normalized_comm):
             return
 
-        # We need to keep the last space in case the command is "set EXP=43 " so that the value will be "43 "
+        # We need to keep trailing spaces in case the command is "set EXP=43 ", so that the value will be "43 "
         # normalized_comm = normalized_comm.strip()
 
-        # remove paranthesis
+        # Remove parenthesis
         index = 0
         last = len(normalized_comm) - 1
         while index < last and (normalized_comm[index] == " " or normalized_comm[index] == "("):
@@ -763,7 +763,7 @@ class BatchDeobfuscator:
         if len(normalized_comm_lower.split("/")[0]) < len(command):
             command = normalized_comm_lower.split("/")[0]
 
-        # Some commands like set cannot be split by double-quotes, but cmd and powershell can.
+        # Some commands like `set` cannot be split by double quotes, but `cmd` and `powershell` can.
         if '""' in command:
             ori_cmd_len = len(command)
             command = command.replace('""', "")
@@ -778,7 +778,7 @@ class BatchDeobfuscator:
                 command = self.modified_filesystem[command]["src"]
 
         if command == "call":
-            # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be remove
+            # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be removed.
             # This shouldn't work:
             # call @set EXP=43
             # But this should:
@@ -807,7 +807,7 @@ class BatchDeobfuscator:
             return
 
         if command == "set":
-            # interpreting set command
+            # Interpreting `set` command
             var_name, var_value = self.interpret_set(normalized_comm[3:])
             if var_value == "":
                 if var_name.lower() in self.variables:
