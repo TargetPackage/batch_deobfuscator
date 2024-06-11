@@ -152,12 +152,12 @@ class BatchDeobfuscator:
         with open(path, "r", encoding="utf-8", errors="ignore") as input_file:
             logical_line = ""
             for line in input_file:
-                if not line.endswith("^"):
+                if not line.rstrip("\r\n").endswith("^"):
                     logical_line += line
                     yield logical_line
                     logical_line = ""
                 else:
-                    logical_line += line + "\n"
+                    logical_line += line.rstrip("\r\n")[:-1]
 
     def find_closing_paren(self, statement):
         state = "init"
