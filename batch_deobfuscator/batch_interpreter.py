@@ -7,6 +7,7 @@ import re
 import shlex
 import shutil
 import string
+import sys
 import tempfile
 from collections import defaultdict
 from urllib.parse import urlparse
@@ -51,6 +52,57 @@ def line_is_comment(line: str) -> bool:
     if len(line) >= 2 and line[0] == ":" and line[1] in string.punctuation:
         return True
     return False
+
+
+# Taken from https://stackoverflow.com/questions/33560364/python-windows-parsing-command-lines-with-shlex
+# An alternative would be https://github.com/smoofra/mslex or https://github.com/petamas/oslex (which use mslex)
+def cmdline_split(s, platform="this"):
+    """Multi-platform variant of shlex.split() for command-line splitting.
+    For use with subprocess, for argv injection etc. Using fast REGEX.
+
+    platform: 'this' = auto from current platform;
+              1 = POSIX;
+              0 = Windows/CMD
+              (other values reserved)
+    """
+    if platform == "this":
+        platform = sys.platform != "win32"
+    if platform == 1:
+        RE_CMD_LEX = r""""((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)"""
+    elif platform == 0:
+        RE_CMD_LEX = r""""((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)"""
+    else:
+        raise AssertionError("unkown platform %r" % platform)
+
+    args = []
+    accu = None  # collects pieces of one arg
+    for qs, qss, esc, pipe, word, white, fail in re.findall(RE_CMD_LEX, s):
+        if word:
+            pass  # most frequent
+        elif esc:
+            word = esc[1]
+        elif white or pipe:
+            if accu is not None:
+                args.append(accu)
+            if pipe:
+                args.append(pipe)
+            accu = None
+            continue
+        elif fail:
+            raise ValueError("invalid or incomplete shell string")
+        elif qs:
+            word = qs.replace('\\"', '"').replace("\\\\", "\\")
+            if platform == 0:
+                word = word.replace('""', '"')
+        else:
+            word = qss  # may be even empty; must be last
+
+        accu = (accu or "") + word
+
+    if accu is not None:
+        args.append(accu)
+
+    return args
 
 
 class BatchDeobfuscator:
@@ -494,7 +546,7 @@ class BatchDeobfuscator:
         # Batch specific obfuscation that is not handled before for echo/variable purposes, can be stripped here
         cmd = cmd.replace('""', "")
         try:
-            split_cmd = shlex.split(cmd, posix=False)
+            split_cmd = cmdline_split(cmd, platform=0)
         except ValueError:
             # Probably a "No closing quotation"
             # Usually generated from corrupted or non-batch files

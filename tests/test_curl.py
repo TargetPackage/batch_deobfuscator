@@ -78,6 +78,13 @@ from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
                 },
             ),
         ),
+        (
+            r'curl -X POST -H "Content-type: application/json" -H "Accept: application/json" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" -d "{\"someParameters\": [{\"name\":\"FILE_NAME\"  \"value\": \"filename.file\"} {\"name\":\"OTHER_PARAM\"  \"value\": \"TRUE\"} {\"name\":\"COMPLEX_PARAM\"  \"value\": [\"some\" \"other\" \"value\"]} ]}" http://server.com/data.page >>some\file\output.json',
+            (
+                r'curl -X POST -H "Content-type: application/json" -H "Accept: application/json" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" -d "{\"someParameters\": [{\"name\":\"FILE_NAME\"  \"value\": \"filename.file\"} {\"name\":\"OTHER_PARAM\"  \"value\": \"TRUE\"} {\"name\":\"COMPLEX_PARAM\"  \"value\": [\"some\" \"other\" \"value\"]} ]}" http://server.com/data.page >>some\file\output.json',
+                {"src": "http://server.com/data.page", "dst": None},
+            ),
+        ),
     ],
 )
 def test_curl_extraction(statement, download_trait):
