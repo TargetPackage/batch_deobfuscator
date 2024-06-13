@@ -122,7 +122,16 @@ class BatchDeobfuscator:
         # There are 211 lines coming out of curl --help, so we won't parse all the options
         self.curl_parser = argparse.ArgumentParser()
         # Data could be had multiple time, but since we don't use it, we can ignore it
-        self.curl_parser.add_argument("-d", "--data", dest="data", help="Data to send")
+        self.curl_parser.add_argument(
+            "-d",
+            "--data",
+            "--data-ascii",
+            "--data-binary",
+            "--data-raw",
+            "--data-urlencode",
+            dest="data",
+            help="Data to send",
+        )
         self.curl_parser.add_argument("-o", "--output", dest="output", help="Write to file instead of stdout")
         self.curl_parser.add_argument("-H", "--header", dest="header", help="Extra header to include")
         self.curl_parser.add_argument(
@@ -760,6 +769,7 @@ class BatchDeobfuscator:
 
         normalized_comm_lower = normalized_comm.lower()
         command = normalized_comm_lower.split()[0]
+        # In case the command is `set/p`, we want only `set`
         if len(normalized_comm_lower.split("/")[0]) < len(command):
             command = normalized_comm_lower.split("/")[0]
 

