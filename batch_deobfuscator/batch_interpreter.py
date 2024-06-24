@@ -819,6 +819,10 @@ class BatchDeobfuscator:
         if normalized_comm[0] == "@":
             normalized_comm = normalized_comm[1:]
 
+        # Verify that the command isn't '@   '
+        if not normalized_comm.strip():
+            return
+
         normalized_comm_lower = normalized_comm.lower()
         command = normalized_comm_lower.split()[0]
         # In case the command is `set/p`, we want only `set`
