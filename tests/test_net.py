@@ -146,6 +146,37 @@ def test_net_use_space():
     )
 
 
+def test_net_use_space_no_quotes():
+    deobfuscator = BatchDeobfuscator()
+    cmd = r"NET USE Z:  \\server\folder\No Quotes For Some Reason"
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 1
+    assert len(deobfuscator.traits["net-use"]) == 1
+    assert deobfuscator.traits["net-use"][0] == (
+        cmd,
+        {
+            "devicename": "Z:",
+            "server": r"\\server\folder\No Quotes For Some Reason",
+        },
+    )
+
+
+def test_net_use_from_text_blob():
+    deobfuscator = BatchDeobfuscator()
+    # Found in 8d06dd9b902bd1d3fcf55ced6ceb2488903c337dde28e7ad1a9c94e9dc5cfd38
+    cmd = r"net use x: \\<remote computer name>\C$)."
+    deobfuscator.interpret_command(cmd)
+    assert len(deobfuscator.traits) == 1
+    assert len(deobfuscator.traits["net-use"]) == 1
+    assert deobfuscator.traits["net-use"][0] == (
+        cmd,
+        {
+            "devicename": "x:",
+            "server": r"\\<remote computer name>\C$).",
+        },
+    )
+
+
 def test_net_use_script():
     deobfuscator = BatchDeobfuscator()
     script = rb"""

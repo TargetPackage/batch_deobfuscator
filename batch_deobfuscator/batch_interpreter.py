@@ -786,7 +786,9 @@ class BatchDeobfuscator:
             info["password"] = extra_params.pop(0)
 
         if extra_params:
-            raise Exception(f"Too many parameters in net use: '{cmd}'")
+            # Either we're handling a corrupted script, or the path contains spaces without being rightly quoted
+            # In that case, we'll assume no password were provided and will use all extra params as the server
+            info["server"] = " ".join([info["server"], info.pop("password")] + extra_params)
 
         if not info["options"]:
             info.pop("options")
