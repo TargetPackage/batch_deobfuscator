@@ -31,6 +31,12 @@ options:
                         replace `%=exitcodeAscii%` with the appropriate value
 ```
 
+### Example
+```shell
+python3 batch_interpreter.py -f ../examples/huntress-2024-russian-roulette.bat -o ../examples/deobfuscated-verbose.bat --math --exitcodes --verbose
+python3 batch_interpreter.py -f ../examples/huntress-2024-russian-roulette.bat -o ../examples/deobfuscated.bat --math --exitcodes
+```
+
 ## Use as a lib
 ```python
 from batch_deobfuscator.batch_interpreter import BatchDeobfuscator, handle_bat_file

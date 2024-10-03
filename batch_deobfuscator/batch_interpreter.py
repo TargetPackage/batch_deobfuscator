@@ -718,11 +718,12 @@ class BatchDeobfuscator:
                 command = self.modified_filesystem[command]["src"]
 
         if command == "call":
-            # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be removed.
-            # This shouldn't work:
-            # call @set EXP=43
-            # But this should:
-            # call set EXP=43
+            # Recursively interpret the command after "call"
+              # TODO: Not a perfect interpretation as the @ sign of the recursive command shouldn't be removed.
+              # This shouldn't work:
+              # call @set EXP=43
+              # But this should:
+              # call set EXP=43
             self.interpret_command(normalized_comm[5:])
             return
 
@@ -741,7 +742,7 @@ class BatchDeobfuscator:
             return
 
         if command.endswith("cmd") or command.endswith("cmd.exe"):
-            # https://ss64.com/nt/cmd.html
+            # Handle "cmd" command with various options
             cmd_command = r"cmd(.exe)?\s*((\/A|\/U|\/Q|\/D)\s+|((\/E|\/F|\/V):(ON|OFF))\s*)*(\/c|\/r)\s*(?P<cmd>.*)"
             match = re.search(cmd_command, normalized_comm, re.IGNORECASE)
             if match is not None and match.group("cmd") is not None:
@@ -752,7 +753,7 @@ class BatchDeobfuscator:
             return
 
         if command == "set":
-            # Interpreting `set` command
+            # Interpret the "set" command to handle variable assignments
             var_name, var_value = self.interpret_set(normalized_comm[3:])
             var_name = var_name.lower()
 
@@ -788,6 +789,11 @@ class BatchDeobfuscator:
 
         if command == "copy":
             self.interpret_copy(normalized_comm)
+
+        if command == "exit":
+            # Capture the exit code if provided, default to 0 otherwise
+            self.exit_code = normalized_comm.split()[1] if len(normalized_comm.split()) > 1 else "0"
+            return
 
 
     def valid_percent_tilde(self, argument):
@@ -1162,6 +1168,9 @@ def interpret_logical_line_str(deobfuscator, logical_line, tab="", child=False):
             if cli_args.verbose:
                 str += tab + ":comment" + "\n"
                 str += tab + "# [END OF CHILD CMD]"
+    # Remove empty lines if not verbose
+    if not cli_args.verbose:
+        str = "\n".join(filter(bool, str.splitlines()))
     return str
 
 
